@@ -15,8 +15,10 @@ class Window(QMainWindow):
         self.setGeometry(200, 50, 1000, 800)
         self.setWindowTitle("Main window")
         self.show()
-        self.path = ''
+        self.text_to_hide_label = ''
         self.encryption_image = ''
+        self.encryption_pass_phrase_label = ''
+        self.encryption_output_path = ''
 
         # Main control block
         main_layout = QVBoxLayout()
@@ -29,8 +31,8 @@ class Window(QMainWindow):
         self.upload_image_button_encrypt = QPushButton("Upload Image", encrypt_groupbox)
         self.upload_image_button_encrypt.setGeometry(10, 25, 965, 200)
         self.upload_image_button_encrypt.clicked.connect(self.upload_image)
-        text_to_hide_label = QLabel("Messages to Hide :", encrypt_groupbox)
-        text_to_hide_label.setGeometry(20, 250, 130, 30)
+        self.text_to_hide_label = QLabel("Messages to Hide :", encrypt_groupbox)
+        self.text_to_hide_label.setGeometry(20, 250, 130, 30)
         self.text_to_hide_encrypt = QLineEdit(encrypt_groupbox)
         self.text_to_hide_encrypt.setGeometry(150, 250, 200, 30)
         # -- Encryption positions
@@ -74,8 +76,8 @@ class Window(QMainWindow):
         self.encryption_algorithm_button_group.buttonClicked.connect(on_button_clicked)
         self.encryption_algorithm1_btn.setChecked(True)
         # ---- Encryption pass phrase
-        encryption_pass_phrase_label = QCheckBox(" Use pass phrase :", encrypt_groupbox)
-        encryption_pass_phrase_label.setGeometry(470, 250, 170, 30)
+        self.encryption_pass_phrase_label = QCheckBox(" Use pass phrase :", encrypt_groupbox)
+        self.encryption_pass_phrase_label.setGeometry(470, 250, 170, 30)
         self.encryption_pass_phrase = QLineEdit(encrypt_groupbox)
         self.encryption_pass_phrase.setGeometry(610, 250, 170, 30)
         # -- Output file directory
@@ -91,15 +93,15 @@ class Window(QMainWindow):
         self.encryption_output_file_name = QLineEdit(encrypt_groupbox)
         self.encryption_output_file_name.setGeometry(600, 330, 180, 30)
         # -- Process buttons
-        self.encryption_aledert_label = QLabel("Idling...", encrypt_groupbox)
-        self.encryption_aledert_label.setAlignment(Qt.AlignCenter)
-        self.encryption_aledert_label.setGeometry(830, 250, 120, 30)
+        self.encryption_alert_label = QLabel("Idling", encrypt_groupbox)
+        self.encryption_alert_label.setAlignment(Qt.AlignCenter)
+        self.encryption_alert_label.setGeometry(830, 250, 120, 30)
         self.encryption_process_image_btn = QPushButton("Process", encrypt_groupbox)
         self.encryption_process_image_btn.setGeometry(830, 300, 120, 30)
         # self.encryption_process_image_btn.clicked.connect()
         self.encryption_clear_btn = QPushButton("Clear", encrypt_groupbox)
         self.encryption_clear_btn.setGeometry(830, 330, 120, 30)
-        # self.encryption_clear_btn.clicked.connect()
+        self.encryption_clear_btn.clicked.connect(self.clear_encryption_area)
 
         ########################
         # Decryption area here #
@@ -128,8 +130,8 @@ class Window(QMainWindow):
 
         path = QFileDialog.getExistingDirectory(self, "Select Directory", options=options)
         if path:
-            self.path = path
-            self.btn_select_path.setText(self.path)
+            self.encryption_output_path = path
+            self.btn_select_path.setText(self.encryption_output_path)
             self.btn_select_path.update()
 
     def upload_image(self):
@@ -140,3 +142,17 @@ class Window(QMainWindow):
                 f"QPushButton {{ border-image: url('{file_path}'); border-image-outset: 30%;"
                 f" background-position: center;}}")
 
+    def clear_encryption_area(self):
+        self.text_to_hide_encrypt.clear()
+        self.encryption_image = ''
+        self.upload_image_button_encrypt.setStyleSheet(
+            "QPushButton { background-image: none; }"
+        )
+        self.encryption_position1_btn.setChecked(True)
+        self.encryption_algorithm1_btn.setChecked(True)
+        self.encryption_pass_phrase_label.setChecked(False)
+        self.encryption_pass_phrase.clear()
+        self.encryption_output_path = '--'
+        self.btn_select_path.setText(self.encryption_output_path)
+        self.btn_select_path.update()
+        self.encryption_output_file_name.clear()
