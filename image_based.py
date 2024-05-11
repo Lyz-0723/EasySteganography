@@ -4,6 +4,10 @@ from PIL import Image
 from utils import encode_message, decode_message, image_array_reshape
 
 
+def text_fits_in_image(pixels: np.array, text: str):
+    return len(text) <= len(pixels) // 3
+
+
 def odd2even(num: int):
     return num - 1 if num % 2 != 0 else num
 
@@ -31,10 +35,9 @@ def modify_pixel(pixels: np.array, bin_text: str, last: bool):
 
 def encode_image(image: Image, message: str):
     bin_text_list = encode_message(message)
-
     pixels, shape = image_array_reshape(image)
 
-    if len(bin_text_list) > len(pixels) // 3:
+    if not text_fits_in_image(pixels, message):
         print('Message is too long')
         return
 
@@ -63,7 +66,7 @@ def get_bin_text(data: list[str], pixels: np.array):
         bin_text += '0' if pixels[i] % 2 == 0 else '1'
 
     data.append(bin_text)
-    return True if pixels[-1] % 2 == 1 else False
+    return pixels[-1] % 2 == 1
 
 
 def decode_image(img_path: str):
