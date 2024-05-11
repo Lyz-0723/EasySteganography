@@ -46,12 +46,16 @@ def encode_and_save(img_path: str, save_directory: str, save_name: str, message:
     new_img.save(f"{save_directory}/{save_name}", 'PNG')
 
 
+def get_bin_value(value: int):
+    return '0' if value % 2 == 0 else '1'
+
+
 def get_bin_text(data: list[str], pixels: np.array):
     pixels = pixels.reshape(9, )
 
     bin_text = ''
-    for i in range(len(pixels) - 1):
-        bin_text += '0' if pixels[i] % 2 == 0 else '1'
+    for i in range(8):
+        bin_text += get_bin_value(pixels[i])
 
     data.append(bin_text)
     return pixels[-1] % 2 == 1

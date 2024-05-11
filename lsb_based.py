@@ -16,12 +16,5 @@ def modify_pixel(pixels: np.array, bin_text: str, last: bool):
         pixels[-1][-1] = odd2even(pixels[-1][-1])
 
 
-def get_bin_text(data: list[str], pixels: np.array):
-    pixels = pixels.reshape(9, )
-
-    bin_text = ''
-    for i in range(len(pixels) - 1):
-        bin_text += format(pixels[i], "08b")[-1]
-
-    data.append(bin_text)
-    return pixels[-1] % 2 == 1
+def get_bin_value(value: int):
+    return format(value, "08b")[-1]
