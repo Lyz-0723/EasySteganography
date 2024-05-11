@@ -1,13 +1,7 @@
 import numpy as np
 from PIL import Image
 
-
-def encode_message(message: str):
-    return [format(ord(x), '08b') for x in message]
-
-
-def decode_message(message_list: list[str]):
-    return "".join([chr(int(x, 2)) for x in message_list])
+from utils import encode_message, decode_message, image_array_reshape
 
 
 def odd2even(num: int):
@@ -35,28 +29,20 @@ def modify_pixel(pixels: np.array, bin_text: str, last: bool):
         pixels[-1][-1] = odd2even(pixels[-1][-1])
 
 
-def image_array_reshape(image: Image):
-    pixels = np.array(image)
-    shape = pixels.shape
-
-    pixels = pixels.reshape(shape[0] * shape[1], shape[2])
-
-    return pixels, shape
-
-
 def encode_image(image: Image, message: str):
     bin_text_list = encode_message(message)
 
     pixels, shape = image_array_reshape(image)
 
+    if len(bin_text_list) > len(pixels) // 3:
+        print('Message is too long')
+        return
+
     for i in range(len(bin_text_list)):
         last = i == (len(bin_text_list) - 1)
 
-        try:
-            start = i * 3
-            modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
-        except IndexError:
-            print('Message is too long')
+        start = i * 3
+        modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
 
     return Image.fromarray(pixels.reshape(shape))
 
