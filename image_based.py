@@ -1,19 +1,7 @@
 import numpy as np
 from PIL import Image
 
-from utils import encode_message, decode_message, image_array_reshape
-
-
-def text_fits_in_image(pixels: np.array, text: str):
-    return len(text) <= len(pixels) // 3
-
-
-def odd2even(num: int):
-    return num - 1 if num % 2 != 0 else num
-
-
-def even2odd(num: int):
-    return num - 1 if num % 2 == 0 else num
+from utils import encode_message, decode_message, image_array_reshape, text_fits_in_image, odd2even, even2odd
 
 
 def modify_pixel(pixels: np.array, bin_text: str, last: bool):
