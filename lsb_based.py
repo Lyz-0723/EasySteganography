@@ -8,7 +8,7 @@ def modify_pixel(pixels: np.array, bin_text: str, last: bool):
         x = j // 3
         y = j % 3
 
-        pixels[x][y] = int(format(ord(pixels[x][y]), "08b")[:-1] + bin_text[j], 2)
+        pixels[x][y] = int(format(pixels[x][y], "08b")[:-1] + bin_text[j], 2)
 
     if last:
         pixels[-1][-1] = abs(even2odd(pixels[-1][-1]))
@@ -21,7 +21,7 @@ def get_bin_text(data: list[str], pixels: np.array):
 
     bin_text = ''
     for i in range(len(pixels) - 1):
-        bin_text += format(ord(pixels[i]), "08b")[-1]
+        bin_text += format(pixels[i], "08b")[-1]
 
     data.append(bin_text)
     return pixels[-1] % 2 == 1
