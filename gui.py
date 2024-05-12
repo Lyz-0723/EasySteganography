@@ -1,19 +1,80 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QMainWindow
+from PIL import Image
+import numpy as np
+from utils import encode_message, decode_message, image_array_reshape, text_fits_in_image
+
+from Algorithms import lsb_based
 
 
-def on_button_clicked(button) -> None:
-    # Change the encryption / decryption algorithm
-    print(f"{button.text()} selected")
+def get_bin_text(data: list[str], pixels: np.array, algorithm: str, position: str):
+    pixels = pixels.reshape(9, )
+    bin_text = ''
+    for i in range(8):
+        match algorithm:
+            case "LSB steg":
+                bin_text += lsb_based.get_bin_value(pixels[i])
+            case _:
+                bin_text += lsb_based.get_bin_value(pixels[i])
+
+    data.append(bin_text)
+    return pixels[-1] % 2 == 1
+
+
+def encode_image(image: Image, message: str, algorithm: str, position: str):
+    bin_text_list = encode_message(message)
+    pixels, shape = image_array_reshape(image)
+
+    if not text_fits_in_image(pixels, message):
+        print('Message is too long')
+        return
+
+    for i in range(len(bin_text_list)):
+        last = i == (len(bin_text_list) - 1)
+
+        start = i * 3
+        match algorithm:
+            case "LSB steg":
+                lsb_based.modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
+            case _:
+                lsb_based.modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
+
+    return Image.fromarray(pixels.reshape(shape))
+
+
+def encode_and_save(img_path: str, save_directory: str, save_name: str, message: str, algorithm: str, position: str):
+    image_copy = Image.open(img_path, 'r').copy()
+
+    new_img = encode_image(image_copy, message, algorithm, position)
+
+    new_img.save(f"{save_directory}/{save_name}", 'PNG')
+
+
+def decode_image(img_path: str, algorithm: str, position: str):
+    image = Image.open(img_path, 'r')
+
+    pixels, _ = image_array_reshape(image)
+
+    data = []
+    i = 0
+    while True:
+        start = i * 3
+
+        if get_bin_text(data, pixels[start: start + 3], algorithm, position):
+            break
+
+        i += 1
+
+    return decode_message(data)
 
 
 class Window(QMainWindow):
     # Gui window
     def __init__(self):
         super().__init__()
-        self.setGeometry(200, 50, 1000, 800)
-        self.setWindowTitle("Main window")
+        self.setGeometry(200, 100, 1000, 800)
+        self.setWindowTitle("Easy Steganography")
         self.show()
         # Encryption datas
         self.text_to_hide_label = ''
@@ -50,7 +111,6 @@ class Window(QMainWindow):
         self.encryption_position_button_group.addButton(self.encryption_position2_btn)
         self.encryption_position1_btn.setGeometry(150, 290, 100, 30)
         self.encryption_position2_btn.setGeometry(220, 290, 100, 30)
-        self.encryption_position_button_group.buttonClicked.connect(on_button_clicked)
         self.encryption_position1_btn.setChecked(True)
         # -- Encryption methods
         encryption_method_label = QLabel("Encryption Method :", encrypt_groupbox)
@@ -58,7 +118,7 @@ class Window(QMainWindow):
         # ---- Encryption algorithm buttons
         self.encryption_algorithm_button_group = QButtonGroup(encrypt_groupbox)
         self.encryption_algorithm_button_group.setExclusive(True)
-        self.encryption_algorithm1_btn = QRadioButton("Algorithm 1", encrypt_groupbox)
+        self.encryption_algorithm1_btn = QRadioButton("LSB steg", encrypt_groupbox)
         self.encryption_algorithm2_btn = QRadioButton("--", encrypt_groupbox)
         self.encryption_algorithm3_btn = QRadioButton("--", encrypt_groupbox)
         self.encryption_algorithm4_btn = QRadioButton("--", encrypt_groupbox)
@@ -76,7 +136,6 @@ class Window(QMainWindow):
         self.encryption_algorithm4_btn.setGeometry(150, 350, 100, 30)
         self.encryption_algorithm5_btn.setGeometry(250, 350, 100, 30)
         self.encryption_algorithm6_btn.setGeometry(350, 350, 100, 30)
-        self.encryption_algorithm_button_group.buttonClicked.connect(on_button_clicked)
         self.encryption_algorithm1_btn.setChecked(True)
         # ---- Encryption pass phrase
         self.encryption_pass_phrase_label = QCheckBox(" Use pass phrase :", encrypt_groupbox)
@@ -101,7 +160,7 @@ class Window(QMainWindow):
         self.encryption_alert_label.setGeometry(830, 250, 120, 30)
         self.encryption_process_image_btn = QPushButton("Process", encrypt_groupbox)
         self.encryption_process_image_btn.setGeometry(830, 300, 120, 30)
-        # self.encryption_process_image_btn.clicked.connect()
+        self.encryption_process_image_btn.clicked.connect(self.process_encrypt)
         self.encryption_clear_btn = QPushButton("Clear", encrypt_groupbox)
         self.encryption_clear_btn.setGeometry(830, 330, 120, 30)
         self.encryption_clear_btn.clicked.connect(self.clear_encryption_area)
@@ -126,7 +185,6 @@ class Window(QMainWindow):
         self.decryption_position_button_group.addButton(self.decryption_position2_btn)
         self.decryption_position1_btn.setGeometry(150, 250, 100, 30)
         self.decryption_position2_btn.setGeometry(220, 250, 100, 30)
-        self.decryption_position_button_group.buttonClicked.connect(on_button_clicked)
         self.decryption_position1_btn.setChecked(True)
         # -- Decryption methods
         decryption_method_label = QLabel("Decryption Method :", decrypt_groupbox)
@@ -134,7 +192,7 @@ class Window(QMainWindow):
         # ---- Decryption algorithm buttons
         self.decryption_algorithm_button_group = QButtonGroup(decrypt_groupbox)
         self.decryption_algorithm_button_group.setExclusive(True)
-        self.decryption_algorithm1_btn = QRadioButton("Algorithm 1", decrypt_groupbox)
+        self.decryption_algorithm1_btn = QRadioButton("LSB steg", decrypt_groupbox)
         self.decryption_algorithm2_btn = QRadioButton("--", decrypt_groupbox)
         self.decryption_algorithm3_btn = QRadioButton("--", decrypt_groupbox)
         self.decryption_algorithm4_btn = QRadioButton("--", decrypt_groupbox)
@@ -152,7 +210,6 @@ class Window(QMainWindow):
         self.decryption_algorithm4_btn.setGeometry(150, 310, 100, 30)
         self.decryption_algorithm5_btn.setGeometry(250, 310, 100, 30)
         self.decryption_algorithm6_btn.setGeometry(350, 310, 100, 30)
-        self.decryption_algorithm_button_group.buttonClicked.connect(on_button_clicked)
         self.decryption_algorithm1_btn.setChecked(True)
         # ---- Decryption pass phrase
         self.decryption_pass_phrase_label = QCheckBox(" Use pass phrase :", decrypt_groupbox)
@@ -165,7 +222,7 @@ class Window(QMainWindow):
         self.decryption_alert_label.setGeometry(475, 300, 300, 30)
         self.decryption_process_image_btn = QPushButton("Process", decrypt_groupbox)
         self.decryption_process_image_btn.setGeometry(830, 270, 120, 30)
-        # self.encryption_process_image_btn.clicked.connect()
+        self.decryption_process_image_btn.clicked.connect(self.process_decrypt)
         self.decryption_clear_btn = QPushButton("Clear", decrypt_groupbox)
         self.decryption_clear_btn.setGeometry(830, 300, 120, 30)
         self.decryption_clear_btn.clicked.connect(self.clear_decryption_area)
@@ -242,3 +299,28 @@ class Window(QMainWindow):
         self.decryption_algorithm1_btn.setChecked(True)
         self.decryption_pass_phrase_label.setChecked(False)
         self.decryption_pass_phrase.clear()
+
+    def process_encrypt(self):
+        algorithm = self.encryption_algorithm_button_group.checkedButton().text()
+        position = self.encryption_position_button_group.checkedButton().text()
+        encode_and_save(
+            self.encryption_image,
+            self.encryption_output_path,
+            self.encryption_output_file_name.text(),
+            self.text_to_hide_encrypt.text(),
+            algorithm,
+            position
+        )
+
+    def process_decrypt(self):
+        self.hiding_text_decrypt.clear()
+        algorithm = self.decryption_algorithm_button_group.checkedButton().text()
+        position = self.decryption_position_button_group.checkedButton().text()
+        decryption_messages = decode_image(
+            self.decryption_image,
+            algorithm,
+            position
+        )
+        print("Hiding messages:", decryption_messages)
+        self.hiding_text_decrypt.setText(decryption_messages)
+        self.hiding_text_decrypt.update()
