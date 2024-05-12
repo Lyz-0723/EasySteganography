@@ -1,5 +1,4 @@
 import numpy as np
-from utils import odd2even, even2odd
 
 
 def modify_pixel(pixels: np.array, bin_text: str, last: bool):
@@ -7,13 +6,10 @@ def modify_pixel(pixels: np.array, bin_text: str, last: bool):
         x = j // 3
         y = j % 3
 
-        pixels[x][y] = int(format(pixels[x][y], "08b")[:-1] + bin_text[j], 2)
+        pixels[x][y] = (pixels[x][y] & 254) | int(bin_text[j])
 
-    if last:
-        pixels[-1][-1] = abs(even2odd(pixels[-1][-1]))
-    else:
-        pixels[-1][-1] = odd2even(pixels[-1][-1])
+    pixels[-1][-1] = (pixels[-1][-1] & 254) | (1 if last else 0)
 
 
 def get_bin_value(value: int):
-    return format(value, "08b")[-1]
+    return str(value & 1)

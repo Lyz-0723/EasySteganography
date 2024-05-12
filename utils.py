@@ -21,11 +21,3 @@ def image_array_reshape(image: Image):
 
 def text_fits_in_image(pixels: np.array, text: str):
     return len(text) <= len(pixels) // 3
-
-
-def odd2even(num: int):
-    return num - 1 if num % 2 != 0 else num
-
-
-def even2odd(num: int):
-    return num - 1 if num % 2 == 0 else num
