@@ -73,7 +73,7 @@ class Window(QMainWindow):
     # Gui window
     def __init__(self):
         super().__init__()
-        self.setGeometry(200, 100, 1000, 800)
+        self.setGeometry(200, 0, 1000, 900)
         self.setWindowTitle("Easy Steganography")
         self.show()
         # Encryption datas
@@ -93,7 +93,7 @@ class Window(QMainWindow):
         encrypt_groupbox = QGroupBox("Encrypt")
         # -- Image info
         self.upload_image_button_encrypt = QPushButton("Upload Image", encrypt_groupbox)
-        self.upload_image_button_encrypt.setGeometry(10, 25, 955, 200)
+        self.upload_image_button_encrypt.setGeometry(10, 25, 805, 200)
         self.upload_image_button_encrypt.clicked.connect(self.upload_image_encrypt)
         self.text_to_hide_label = QLabel("Messages to Hide :", encrypt_groupbox)
         self.text_to_hide_label.setGeometry(20, 250, 130, 30)
@@ -151,11 +151,14 @@ class Window(QMainWindow):
         self.btn_select_path.setStyleSheet("text-align: left;")
         # -- Output file name
         encryption_output_file_name_label = QLabel(" Output file name :", encrypt_groupbox)
-        encryption_output_file_name_label.setGeometry(470, 330, 130, 30)
+        encryption_output_file_name_label.setGeometry(470, 330, 115, 30)
         self.encryption_output_file_name = QLineEdit(encrypt_groupbox)
-        self.encryption_output_file_name.setGeometry(600, 330, 180, 30)
+        self.encryption_output_file_name.setGeometry(590, 330, 150, 30)
+        encryption_output_file_extension_label = QLabel(". png", encrypt_groupbox)
+        encryption_output_file_extension_label.setGeometry(745, 330, 50, 30)
         # -- Process buttons
         self.encryption_alert_label = QLabel("Idling", encrypt_groupbox)
+        self.encryption_alert_label.setStyleSheet("font-weight: bold; color: white;")
         self.encryption_alert_label.setAlignment(Qt.AlignCenter)
         self.encryption_alert_label.setGeometry(830, 250, 120, 30)
         self.encryption_process_image_btn = QPushButton("Process", encrypt_groupbox)
@@ -171,7 +174,7 @@ class Window(QMainWindow):
         decrypt_groupbox = QGroupBox("Decrypt")
         # -- Image info
         self.upload_image_button_decrypt = QPushButton("Upload Image", decrypt_groupbox)
-        self.upload_image_button_decrypt.setGeometry(10, 25, 955, 200)
+        self.upload_image_button_decrypt.setGeometry(10, 25, 805, 200)
         self.upload_image_button_decrypt.clicked.connect(self.upload_image_decrypt)
         # -- Decryption positions
         encryption_position_label = QLabel("Decryption Position :", decrypt_groupbox)
@@ -218,6 +221,7 @@ class Window(QMainWindow):
         self.decryption_pass_phrase.setGeometry(610, 250, 170, 30)
         # -- Process buttons
         self.decryption_alert_label = QLabel("Idling", decrypt_groupbox)
+        self.decryption_alert_label.setStyleSheet("font-weight: bold; color: white;")
         self.decryption_alert_label.setAlignment(Qt.AlignCenter)
         self.decryption_alert_label.setGeometry(475, 300, 300, 30)
         self.decryption_process_image_btn = QPushButton("Process", decrypt_groupbox)
@@ -234,6 +238,7 @@ class Window(QMainWindow):
         self.hiding_text_decrypt.setReadOnly(True)
 
         # Adding blocks to control block
+        main_layout.addSpacing(30)
         main_layout.addWidget(encrypt_groupbox)
         main_layout.addWidget(decrypt_groupbox)
         # Widget settings
@@ -242,8 +247,8 @@ class Window(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def on_checkbox_state_changed(self, state):
-        if state == 2:  # Qt.Checked
-            self.text_input.setEnabled(True)  # 勾選時啟用文字輸入框
+        if state == 2:
+            self.text_input.setEnabled(True)
         else:
             self.text_input.setEnabled(False)
 
@@ -275,6 +280,8 @@ class Window(QMainWindow):
                 f" background-position: center;}}")
 
     def clear_encryption_area(self):
+        self.encryption_alert_label.setText('Idling')
+        self.encryption_alert_label.setStyleSheet("color: white;")
         self.text_to_hide_encrypt.clear()
         self.encryption_image = ''
         self.upload_image_button_encrypt.setStyleSheet(
@@ -290,6 +297,8 @@ class Window(QMainWindow):
         self.encryption_output_file_name.clear()
 
     def clear_decryption_area(self):
+        self.decryption_alert_label.setText('Idling')
+        self.encryption_alert_label.setStyleSheet("color: white;")
         self.hiding_text_decrypt.clear()
         self.decryption_image = ''
         self.upload_image_button_decrypt.setStyleSheet(
@@ -301,18 +310,25 @@ class Window(QMainWindow):
         self.decryption_pass_phrase.clear()
 
     def process_encrypt(self):
+        self.encryption_alert_label.setText('Processing')
+        self.encryption_alert_label.setStyleSheet("color: yellow;")
         algorithm = self.encryption_algorithm_button_group.checkedButton().text()
         position = self.encryption_position_button_group.checkedButton().text()
+        output_file_name = self.encryption_output_file_name.text().split('.')[0] + '.png'
         encode_and_save(
             self.encryption_image,
             self.encryption_output_path,
-            self.encryption_output_file_name.text(),
+            output_file_name,
             self.text_to_hide_encrypt.text(),
             algorithm,
             position
         )
+        self.encryption_alert_label.setText('Done')
+        self.encryption_alert_label.setStyleSheet("color: green;")
 
     def process_decrypt(self):
+        self.decryption_alert_label.setText('Processing')
+        self.decryption_alert_label.setStyleSheet("color: yellow;")
         self.hiding_text_decrypt.clear()
         algorithm = self.decryption_algorithm_button_group.checkedButton().text()
         position = self.decryption_position_button_group.checkedButton().text()
@@ -322,5 +338,7 @@ class Window(QMainWindow):
             position
         )
         print("Hiding messages:", decryption_messages)
+        self.decryption_alert_label.setText('Done')
+        self.decryption_alert_label.setStyleSheet("color: green;")
         self.hiding_text_decrypt.setText(decryption_messages)
         self.hiding_text_decrypt.update()
