@@ -88,6 +88,17 @@ class Window(QMainWindow):
         main_layout = QVBoxLayout()
 
         ########################
+        #        NavBar        #
+        ########################
+        navbar_groupbox = QGroupBox("NavBar")
+        navbar_groupbox.setFixedSize(1000, 60)
+        key_generator_button = QPushButton("Key generator", navbar_groupbox)
+        key_generator_button.setGeometry(785, 20, 120, 40)
+        key_generator_button.clicked.connect(self.open_key_generator)
+        directions_button = QPushButton("Directions", navbar_groupbox)
+        directions_button.setGeometry(900, 20, 100, 40)
+
+        ########################
         # Encryption area here #
         ########################
         encrypt_groupbox = QGroupBox("Encrypt")
@@ -238,13 +249,17 @@ class Window(QMainWindow):
         self.hiding_text_decrypt.setReadOnly(True)
 
         # Adding blocks to control block
-        main_layout.addSpacing(30)
+        main_layout.addWidget(navbar_groupbox)
         main_layout.addWidget(encrypt_groupbox)
         main_layout.addWidget(decrypt_groupbox)
         # Widget settings
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
+
+    def open_key_generator(self):
+        dialog = KeyGenerator(self)
+        dialog.exec_()
 
     def on_checkbox_state_changed(self, state):
         if state == 2:
@@ -342,3 +357,11 @@ class Window(QMainWindow):
         self.decryption_alert_label.setStyleSheet("color: green;")
         self.hiding_text_decrypt.setText(decryption_messages)
         self.hiding_text_decrypt.update()
+
+
+class KeyGenerator(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Key generator")
+        self.setGeometry(0, 0, 400, 300)
+        self.move(parent.geometry().x() + int(self.width() / 2), parent.geometry().y())
