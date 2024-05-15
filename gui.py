@@ -7,7 +7,7 @@ from utils import encode_message, decode_message, image_array_reshape, text_fits
 
 from Algorithms import lsb_based
 
-basic_style = "font-weight: bold; font-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"
+basic_style = "font-weight: bold;"
 pgp_path = '--'
 
 
@@ -205,7 +205,6 @@ class Window(QMainWindow):
         self.hiding_text_label = QLabel("Messages hiding in image :", self.decrypt_groupbox)
         self.hiding_text_label.setGeometry(20, 430, 180, 30)
         self.hiding_text_decrypt = QTextEdit(self.decrypt_groupbox)
-        self.hiding_text_decrypt.setStyleSheet("background-color: #4F4F4F;")
         self.hiding_text_decrypt.setGeometry(20, 460, 650, 105)
         self.hiding_text_decrypt.setReadOnly(True)
         # -- Decryption positions
@@ -320,6 +319,7 @@ class Window(QMainWindow):
             self.upload_image_button_encrypt.setStyleSheet(
                 f"QPushButton {{ border-image: url('{file_path}'); border-image-outset: 30%;"
                 f" background-position: center;}}")
+            self.upload_image_button_encrypt.setText("")
 
     def upload_image_decrypt(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp)")
@@ -328,9 +328,11 @@ class Window(QMainWindow):
             self.upload_image_button_decrypt.setStyleSheet(
                 f"QPushButton {{ border-image: url('{file_path}'); border-image-outset: 30%;"
                 f" background-position: center;}}")
+            self.upload_image_button_decrypt.setText('')
 
     def clear_encryption_area(self):
         self.encryption_alert_label.setText('Status : Idling')
+        self.upload_image_button_encrypt.setText('Upload image')
         self.encryption_alert_label.setStyleSheet("color: white;" + basic_style)
         self.text_to_hide_encrypt.clear()
         self.encryption_image = ''
@@ -342,10 +344,11 @@ class Window(QMainWindow):
         self.encryption_output_path = '--'
         self.btn_select_path.setText(self.encryption_output_path)
         self.btn_select_path.update()
-        self.encryption_output_file_name.setText('output')
+        self.encryption_output_file_name.setText('')
 
     def clear_decryption_area(self):
         self.decryption_alert_label.setText('Status : Idling')
+        self.upload_image_button_decrypt.setText('Upload image')
         self.encryption_alert_label.setStyleSheet("color: white;" + basic_style)
         self.hiding_text_decrypt.clear()
         self.decryption_image = ''
@@ -364,14 +367,13 @@ class Window(QMainWindow):
         algorithm = self.encryption_algorithm_button_group.checkedButton().text()
         position = self.encryption_position_button_group.checkedButton().text()
         path = self.encryption_output_path
-        print(path)
         output_file_name = self.encryption_output_file_name.toPlainText().split('.')[0] + '.png'
-
-        if image == '' or output_file_name == '' or path == '--':
+        if output_file_name == '.png':
+            output_file_name = 'output.png'
+        if image == '' or path == '':
             self.encryption_alert_label.setText('Status : Failed')
             self.encryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
             return
-
         encode_and_save(
             image,
             path,
