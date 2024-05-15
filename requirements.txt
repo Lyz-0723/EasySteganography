@@ -2,3 +2,4 @@ numpy==1.26.4
 pyqt5==5.15.10
 opencv-python==4.8.0.74
 pillow==10.3.0
+python-gnupg==0.5.2
