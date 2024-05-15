@@ -20,22 +20,25 @@ class GPG:
         key = self._gpg.gen_key(self._gpg.gen_key_input(key_type='RSA', key_length=1024, passphrase=passphrase))
         fp = key.fingerprint
 
-        # export the keys
+        output_path += fp + '/'
+        os.mkdir(output_path)
+
         output_path += fp
+
+        # export the keys
         self._gpg.export_keys(fp, passphrase=passphrase, output=output_path + '_public_key.asc')
         self._gpg.export_keys(fp, True, passphrase=passphrase, output=output_path + '_private_key.asc')
 
         # delete the key from the keyring
-        self.delete_keys(fp, passphrase)
+        self.delete_keys(fp)
 
         # remove the key file
         key_path = self._gpg_path + 'openpgp-revocs.d/' + fp + '.rev'
         if os.path.exists(key_path):
             os.rename(key_path, output_path + '.rev')
 
-    def delete_keys(self, fingerprint: str, passphrase: str = None) -> None:
-        if passphrase:
-            self._gpg.delete_keys(fingerprint, True, passphrase)
+    def delete_keys(self, fingerprint: str) -> None:
+        self._gpg.delete_keys(fingerprint, True, ' ')
         self._gpg.delete_keys(fingerprint)
 
     def import_key(self, key_path: str) -> str:
@@ -57,5 +60,6 @@ class GPG:
         fp = self.import_key(key_path)
         plain_text = self._gpg.decrypt(data, passphrase=passphrase)
 
-        self.delete_keys(fp, passphrase)
+        self.delete_keys(fp)
+
         return str(plain_text)
