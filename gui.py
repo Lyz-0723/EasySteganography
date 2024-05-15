@@ -394,5 +394,49 @@ class KeyGenerator(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Key generator")
-        self.setGeometry(0, 0, 400, 300)
+        self.setGeometry(0, 0, 400, 200)
         self.move(parent.geometry().x() + int(self.width() / 2), parent.geometry().y())
+        self.path = ''
+
+        # Main control block
+        main_layout = QVBoxLayout()
+        groupbox = QGroupBox("Key generator")
+
+        # Add controls to the groupbox
+        self.key_generator_label = QLabel("Enter pass phrase to generate public / private key pair.", groupbox)
+        self.key_generator_label.setGeometry(10, 20, 350, 30)
+        self.pass_phrase_label = QLabel("Pass phrase :", groupbox)
+        self.pass_phrase_label.setGeometry(10, 50, 100, 30)
+        self.pass_phrase = QTextEdit(groupbox)
+        self.pass_phrase.setGeometry(100, 53, 150, 26)
+        self.select_output_path_label = QLabel("Key pair output path :", groupbox)
+        self.select_output_path_label.setGeometry(10, 80, 150, 30)
+        self.select_output_path = QPushButton("--", groupbox)
+        self.select_output_path.setGeometry(140, 80, 150, 30)
+        self.select_output_path.clicked.connect(self.select_path)
+        self.select_output_path.setStyleSheet("text-align: left;")
+        self.generate_btn = QPushButton("Generate", groupbox)
+        self.generate_btn.setGeometry(240, 140, 110, 30)
+        # self.generate_btn.clicked.connect(self.)
+        self.key_generator_alert_label = QLabel("Status : Idling", groupbox)
+        self.key_generator_alert_label.setStyleSheet("font-weight: bold; color: white;")
+        self.key_generator_alert_label.setAlignment(Qt.AlignCenter)
+        self.key_generator_alert_label.setGeometry(10, 130, 240, 30)
+
+        main_layout.addWidget(groupbox)
+
+        # Widget settings
+        central_widget = QWidget()
+        central_widget.setLayout(main_layout)
+        self.setLayout(main_layout)
+
+    def select_path(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontResolveSymlinks
+        options |= QFileDialog.ShowDirsOnly
+
+        path = QFileDialog.getExistingDirectory(self, "Select Directory", options=options)
+        if path:
+            self.path = path
+            self.select_output_path.setText(self.path)
+            self.select_output_path.update()
