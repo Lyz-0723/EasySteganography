@@ -73,9 +73,10 @@ class Window(QMainWindow):
     # Gui window
     def __init__(self):
         super().__init__()
-        self.setGeometry(200, 0, 1000, 900)
+        self.setGeometry(200, 0, 1000, 800)
         self.setWindowTitle("Easy Steganography")
         self.show()
+        self.mode = 1  # 1 for encrypt, 0 for decrypt
         # Encryption datas
         self.text_to_hide_label = ''
         self.encryption_image = ''
@@ -92,6 +93,14 @@ class Window(QMainWindow):
         ########################
         navbar_groupbox = QGroupBox("NavBar")
         navbar_groupbox.setFixedSize(1000, 60)
+        self.encrypt_mode_button = QPushButton("Encrypt", navbar_groupbox)
+        self.encrypt_mode_button.setGeometry(10, 20, 90, 40)
+        self.encrypt_mode_button.clicked.connect(self.switch_mode)
+        self.encrypt_mode_button.setEnabled(False)
+        self.decrypt_mode_button = QPushButton("Decrypt", navbar_groupbox)
+        self.decrypt_mode_button.setGeometry(90, 20, 90, 40)
+        self.decrypt_mode_button.clicked.connect(self.switch_mode)
+        self.decrypt_mode_button.setEnabled(True)
         key_generator_button = QPushButton("Key generator", navbar_groupbox)
         key_generator_button.setGeometry(785, 20, 120, 40)
         key_generator_button.clicked.connect(self.open_key_generator)
@@ -101,161 +110,176 @@ class Window(QMainWindow):
         ########################
         # Encryption area here #
         ########################
-        encrypt_groupbox = QGroupBox("Encrypt")
+        self.encrypt_groupbox = QGroupBox("Encrypt")
         # -- Image info
-        self.upload_image_button_encrypt = QPushButton("Upload Image", encrypt_groupbox)
-        self.upload_image_button_encrypt.setGeometry(10, 25, 805, 200)
+        self.upload_image_button_encrypt = QPushButton("Upload Image", self.encrypt_groupbox)
+        self.upload_image_button_encrypt.setGeometry(10, 25, 980, 400)
         self.upload_image_button_encrypt.clicked.connect(self.upload_image_encrypt)
-        self.text_to_hide_label = QLabel("Messages to Hide :", encrypt_groupbox)
-        self.text_to_hide_label.setGeometry(20, 250, 130, 30)
-        self.text_to_hide_encrypt = QLineEdit(encrypt_groupbox)
-        self.text_to_hide_encrypt.setGeometry(150, 250, 200, 30)
+        self.text_to_hide_label = QLabel("Messages to hide :", self.encrypt_groupbox)
+        self.text_to_hide_label.setGeometry(20, 430, 130, 30)
+        self.text_to_hide_encrypt = QTextEdit(self.encrypt_groupbox)
+        self.text_to_hide_encrypt.setGeometry(20, 460, 650, 105)
         # -- Encryption positions
-        encryption_position_label = QLabel("Encryption Position :", encrypt_groupbox)
-        encryption_position_label.setGeometry(20, 290, 140, 30)
+        encryption_position_label = QLabel("Encryption Position :", self.encrypt_groupbox)
+        encryption_position_label.setGeometry(20, 580, 140, 30)
         # ---- Encryption position buttons
-        self.encryption_position_button_group = QButtonGroup(encrypt_groupbox)
+        self.encryption_position_button_group = QButtonGroup(self.encrypt_groupbox)
         self.encryption_position_button_group.setExclusive(True)
-        self.encryption_position1_btn = QRadioButton("Start", encrypt_groupbox)
-        self.encryption_position2_btn = QRadioButton("End", encrypt_groupbox)
+        self.encryption_position1_btn = QRadioButton("Start", self.encrypt_groupbox)
+        self.encryption_position2_btn = QRadioButton("End", self.encrypt_groupbox)
         self.encryption_position_button_group.addButton(self.encryption_position1_btn)
         self.encryption_position_button_group.addButton(self.encryption_position2_btn)
-        self.encryption_position1_btn.setGeometry(150, 290, 100, 30)
-        self.encryption_position2_btn.setGeometry(220, 290, 100, 30)
+        self.encryption_position1_btn.setGeometry(150, 580, 100, 30)
+        self.encryption_position2_btn.setGeometry(220, 580, 100, 30)
         self.encryption_position1_btn.setChecked(True)
         # -- Encryption methods
-        encryption_method_label = QLabel("Encryption Method :", encrypt_groupbox)
-        encryption_method_label.setGeometry(20, 330, 130, 30)
+        encryption_method_label = QLabel("Encryption Method :", self.encrypt_groupbox)
+        encryption_method_label.setGeometry(20, 620, 130, 30)
         # ---- Encryption algorithm buttons
-        self.encryption_algorithm_button_group = QButtonGroup(encrypt_groupbox)
+        self.encryption_algorithm_button_group = QButtonGroup(self.encrypt_groupbox)
         self.encryption_algorithm_button_group.setExclusive(True)
-        self.encryption_algorithm1_btn = QRadioButton("LSB steg", encrypt_groupbox)
-        self.encryption_algorithm2_btn = QRadioButton("--", encrypt_groupbox)
-        self.encryption_algorithm3_btn = QRadioButton("--", encrypt_groupbox)
-        self.encryption_algorithm4_btn = QRadioButton("--", encrypt_groupbox)
-        self.encryption_algorithm5_btn = QRadioButton("--", encrypt_groupbox)
-        self.encryption_algorithm6_btn = QRadioButton("--", encrypt_groupbox)
+        self.encryption_algorithm1_btn = QRadioButton("LSB steg", self.encrypt_groupbox)
+        self.encryption_algorithm2_btn = QRadioButton("--", self.encrypt_groupbox)
+        self.encryption_algorithm3_btn = QRadioButton("--", self.encrypt_groupbox)
+        self.encryption_algorithm4_btn = QRadioButton("--", self.encrypt_groupbox)
+        self.encryption_algorithm5_btn = QRadioButton("--", self.encrypt_groupbox)
+        self.encryption_algorithm6_btn = QRadioButton("--", self.encrypt_groupbox)
         self.encryption_algorithm_button_group.addButton(self.encryption_algorithm1_btn)
         self.encryption_algorithm_button_group.addButton(self.encryption_algorithm2_btn)
         self.encryption_algorithm_button_group.addButton(self.encryption_algorithm3_btn)
         self.encryption_algorithm_button_group.addButton(self.encryption_algorithm4_btn)
         self.encryption_algorithm_button_group.addButton(self.encryption_algorithm5_btn)
         self.encryption_algorithm_button_group.addButton(self.encryption_algorithm6_btn)
-        self.encryption_algorithm1_btn.setGeometry(150, 330, 100, 30)
-        self.encryption_algorithm2_btn.setGeometry(250, 330, 100, 30)
-        self.encryption_algorithm3_btn.setGeometry(350, 330, 100, 30)
-        self.encryption_algorithm4_btn.setGeometry(150, 350, 100, 30)
-        self.encryption_algorithm5_btn.setGeometry(250, 350, 100, 30)
-        self.encryption_algorithm6_btn.setGeometry(350, 350, 100, 30)
+        self.encryption_algorithm1_btn.setGeometry(150, 620, 100, 30)
+        self.encryption_algorithm2_btn.setGeometry(250, 620, 100, 30)
+        self.encryption_algorithm3_btn.setGeometry(350, 620, 100, 30)
+        self.encryption_algorithm4_btn.setGeometry(150, 640, 100, 30)
+        self.encryption_algorithm5_btn.setGeometry(250, 640, 100, 30)
+        self.encryption_algorithm6_btn.setGeometry(350, 640, 100, 30)
         self.encryption_algorithm1_btn.setChecked(True)
-        # ---- Encryption pass phrase
-        self.encryption_pass_phrase_label = QCheckBox(" Use pass phrase :", encrypt_groupbox)
-        self.encryption_pass_phrase_label.setGeometry(470, 250, 170, 30)
-        self.encryption_pass_phrase = QLineEdit(encrypt_groupbox)
-        self.encryption_pass_phrase.setGeometry(610, 250, 170, 30)
         # -- Output file directory
-        use_pass_phrase_label = QLabel(" Select output path :", encrypt_groupbox)
-        use_pass_phrase_label.setGeometry(470, 290, 170, 30)
-        self.btn_select_path = QPushButton("--", encrypt_groupbox)
-        self.btn_select_path.setGeometry(600, 290, 190, 30)
+        use_pass_phrase_label = QLabel("Select output path :", self.encrypt_groupbox)
+        use_pass_phrase_label.setGeometry(20, 670, 170, 30)
+        self.btn_select_path = QPushButton("--", self.encrypt_groupbox)
+        self.btn_select_path.setGeometry(140, 670, 190, 30)
         self.btn_select_path.clicked.connect(self.select_path)
         self.btn_select_path.setStyleSheet("text-align: left;")
         # -- Output file name
-        encryption_output_file_name_label = QLabel(" Output file name :", encrypt_groupbox)
-        encryption_output_file_name_label.setGeometry(470, 330, 115, 30)
-        self.encryption_output_file_name = QLineEdit(encrypt_groupbox)
-        self.encryption_output_file_name.setGeometry(590, 330, 150, 30)
-        encryption_output_file_extension_label = QLabel(". png", encrypt_groupbox)
-        encryption_output_file_extension_label.setGeometry(745, 330, 50, 30)
+        encryption_output_file_name_label = QLabel(" Output file name :", self.encrypt_groupbox)
+        encryption_output_file_name_label.setGeometry(470, 620, 115, 30)
+        self.encryption_output_file_name = QTextEdit(self.encrypt_groupbox)
+        self.encryption_output_file_name.setGeometry(590, 623, 150, 26)
+        self.encryption_output_file_name.setText("output")
+        encryption_output_file_extension_label = QLabel(". png", self.encrypt_groupbox)
+        encryption_output_file_extension_label.setGeometry(745, 620, 50, 30)
+        # ---- Encryption PGP
+        self.encryption_pass_phrase_label = QCheckBox(" Use PGP key file", self.encrypt_groupbox)
+        self.encryption_pass_phrase_label.setGeometry(470, 580, 220, 30)
         # -- Process buttons
-        self.encryption_alert_label = QLabel("Idling", encrypt_groupbox)
+        self.encryption_alert_label = QLabel("Status : Idling", self.encrypt_groupbox)
         self.encryption_alert_label.setStyleSheet("font-weight: bold; color: white;")
         self.encryption_alert_label.setAlignment(Qt.AlignCenter)
-        self.encryption_alert_label.setGeometry(830, 250, 120, 30)
-        self.encryption_process_image_btn = QPushButton("Process", encrypt_groupbox)
-        self.encryption_process_image_btn.setGeometry(830, 300, 120, 30)
+        self.encryption_alert_label.setGeometry(470, 670, 400, 30)
+        self.encryption_process_image_btn = QPushButton("Process", self.encrypt_groupbox)
+        self.encryption_process_image_btn.setGeometry(850, 640, 120, 30)
         self.encryption_process_image_btn.clicked.connect(self.process_encrypt)
-        self.encryption_clear_btn = QPushButton("Clear", encrypt_groupbox)
-        self.encryption_clear_btn.setGeometry(830, 330, 120, 30)
+        self.encryption_clear_btn = QPushButton("Clear", self.encrypt_groupbox)
+        self.encryption_clear_btn.setGeometry(850, 670, 120, 30)
         self.encryption_clear_btn.clicked.connect(self.clear_encryption_area)
 
         ########################
         # Decryption area here #
         ########################
-        decrypt_groupbox = QGroupBox("Decrypt")
+        self.decrypt_groupbox = QGroupBox("Decrypt")
         # -- Image info
-        self.upload_image_button_decrypt = QPushButton("Upload Image", decrypt_groupbox)
-        self.upload_image_button_decrypt.setGeometry(10, 25, 805, 200)
+        self.upload_image_button_decrypt = QPushButton("Upload Image", self.decrypt_groupbox)
+        self.upload_image_button_decrypt.setGeometry(10, 25, 980, 400)
         self.upload_image_button_decrypt.clicked.connect(self.upload_image_decrypt)
+        # -- Decryption result messages
+        self.hiding_text_label = QLabel("Messages hiding in image :", self.decrypt_groupbox)
+        self.hiding_text_label.setGeometry(20, 430, 180, 30)
+        self.hiding_text_decrypt = QTextEdit(self.decrypt_groupbox)
+        self.hiding_text_decrypt.setGeometry(20, 460, 650, 105)
+        self.hiding_text_decrypt.setReadOnly(True)
         # -- Decryption positions
-        encryption_position_label = QLabel("Decryption Position :", decrypt_groupbox)
-        encryption_position_label.setGeometry(20, 250, 140, 30)
+        encryption_position_label = QLabel("Decryption Position :", self.decrypt_groupbox)
+        encryption_position_label.setGeometry(20, 580, 140, 30)
         # ---- Decryption position buttons
-        self.decryption_position_button_group = QButtonGroup(decrypt_groupbox)
+        self.decryption_position_button_group = QButtonGroup(self.decrypt_groupbox)
         self.decryption_position_button_group.setExclusive(True)
-        self.decryption_position1_btn = QRadioButton("Start", decrypt_groupbox)
-        self.decryption_position2_btn = QRadioButton("End", decrypt_groupbox)
+        self.decryption_position1_btn = QRadioButton("Start", self.decrypt_groupbox)
+        self.decryption_position2_btn = QRadioButton("End", self.decrypt_groupbox)
         self.decryption_position_button_group.addButton(self.decryption_position1_btn)
         self.decryption_position_button_group.addButton(self.decryption_position2_btn)
-        self.decryption_position1_btn.setGeometry(150, 250, 100, 30)
-        self.decryption_position2_btn.setGeometry(220, 250, 100, 30)
+        self.decryption_position1_btn.setGeometry(150, 580, 100, 30)
+        self.decryption_position2_btn.setGeometry(220, 580, 100, 30)
         self.decryption_position1_btn.setChecked(True)
         # -- Decryption methods
-        decryption_method_label = QLabel("Decryption Method :", decrypt_groupbox)
-        decryption_method_label.setGeometry(20, 280, 130, 30)
+        decryption_method_label = QLabel("Decryption Method :", self.decrypt_groupbox)
+        decryption_method_label.setGeometry(20, 620, 130, 30)
         # ---- Decryption algorithm buttons
-        self.decryption_algorithm_button_group = QButtonGroup(decrypt_groupbox)
+        self.decryption_algorithm_button_group = QButtonGroup(self.decrypt_groupbox)
         self.decryption_algorithm_button_group.setExclusive(True)
-        self.decryption_algorithm1_btn = QRadioButton("LSB steg", decrypt_groupbox)
-        self.decryption_algorithm2_btn = QRadioButton("--", decrypt_groupbox)
-        self.decryption_algorithm3_btn = QRadioButton("--", decrypt_groupbox)
-        self.decryption_algorithm4_btn = QRadioButton("--", decrypt_groupbox)
-        self.decryption_algorithm5_btn = QRadioButton("--", decrypt_groupbox)
-        self.decryption_algorithm6_btn = QRadioButton("--", decrypt_groupbox)
+        self.decryption_algorithm1_btn = QRadioButton("LSB steg", self.decrypt_groupbox)
+        self.decryption_algorithm2_btn = QRadioButton("--", self.decrypt_groupbox)
+        self.decryption_algorithm3_btn = QRadioButton("--", self.decrypt_groupbox)
+        self.decryption_algorithm4_btn = QRadioButton("--", self.decrypt_groupbox)
+        self.decryption_algorithm5_btn = QRadioButton("--", self.decrypt_groupbox)
+        self.decryption_algorithm6_btn = QRadioButton("--", self.decrypt_groupbox)
         self.decryption_algorithm_button_group.addButton(self.decryption_algorithm1_btn)
         self.decryption_algorithm_button_group.addButton(self.decryption_algorithm2_btn)
         self.decryption_algorithm_button_group.addButton(self.decryption_algorithm3_btn)
         self.decryption_algorithm_button_group.addButton(self.decryption_algorithm4_btn)
         self.decryption_algorithm_button_group.addButton(self.decryption_algorithm5_btn)
         self.decryption_algorithm_button_group.addButton(self.decryption_algorithm6_btn)
-        self.decryption_algorithm1_btn.setGeometry(150, 290, 100, 30)
-        self.decryption_algorithm2_btn.setGeometry(250, 290, 100, 30)
-        self.decryption_algorithm3_btn.setGeometry(350, 290, 100, 30)
-        self.decryption_algorithm4_btn.setGeometry(150, 310, 100, 30)
-        self.decryption_algorithm5_btn.setGeometry(250, 310, 100, 30)
-        self.decryption_algorithm6_btn.setGeometry(350, 310, 100, 30)
+        self.decryption_algorithm1_btn.setGeometry(150, 620, 100, 30)
+        self.decryption_algorithm2_btn.setGeometry(250, 620, 100, 30)
+        self.decryption_algorithm3_btn.setGeometry(350, 620, 100, 30)
+        self.decryption_algorithm4_btn.setGeometry(150, 640, 100, 30)
+        self.decryption_algorithm5_btn.setGeometry(250, 640, 100, 30)
+        self.decryption_algorithm6_btn.setGeometry(350, 640, 100, 30)
         self.decryption_algorithm1_btn.setChecked(True)
-        # ---- Decryption pass phrase
-        self.decryption_pass_phrase_label = QCheckBox(" Use pass phrase :", decrypt_groupbox)
-        self.decryption_pass_phrase_label.setGeometry(470, 250, 170, 30)
-        self.decryption_pass_phrase = QLineEdit(decrypt_groupbox)
-        self.decryption_pass_phrase.setGeometry(610, 250, 170, 30)
+        # ---- Decryption PGP
+        self.decryption_pass_phrase_label = QCheckBox(" Use PGP (Enter pass phrase) :", self.decrypt_groupbox)
+        self.decryption_pass_phrase_label.setGeometry(20, 670, 220, 30)
+        self.decryption_pass_phrase = QTextEdit(self.decrypt_groupbox)
+        self.decryption_pass_phrase.setGeometry(235, 673, 250, 26)
         # -- Process buttons
-        self.decryption_alert_label = QLabel("Idling", decrypt_groupbox)
+        self.decryption_alert_label = QLabel("Status : Idling", self.decrypt_groupbox)
         self.decryption_alert_label.setStyleSheet("font-weight: bold; color: white;")
         self.decryption_alert_label.setAlignment(Qt.AlignCenter)
-        self.decryption_alert_label.setGeometry(475, 300, 300, 30)
-        self.decryption_process_image_btn = QPushButton("Process", decrypt_groupbox)
-        self.decryption_process_image_btn.setGeometry(830, 270, 120, 30)
+        self.decryption_alert_label.setGeometry(470, 670, 400, 30)
+        self.decryption_process_image_btn = QPushButton("Process", self.decrypt_groupbox)
+        self.decryption_process_image_btn.setGeometry(850, 640, 120, 30)
         self.decryption_process_image_btn.clicked.connect(self.process_decrypt)
-        self.decryption_clear_btn = QPushButton("Clear", decrypt_groupbox)
-        self.decryption_clear_btn.setGeometry(830, 300, 120, 30)
+        self.decryption_clear_btn = QPushButton("Clear", self.decrypt_groupbox)
+        self.decryption_clear_btn.setGeometry(850, 670, 120, 30)
         self.decryption_clear_btn.clicked.connect(self.clear_decryption_area)
-        # ---- Decryption result messages
-        self.hiding_text_label = QLabel("Messages hiding in image :", decrypt_groupbox)
-        self.hiding_text_label.setGeometry(20, 350, 180, 30)
-        self.hiding_text_decrypt = QLineEdit(decrypt_groupbox)
-        self.hiding_text_decrypt.setGeometry(190, 350, 770, 30)
-        self.hiding_text_decrypt.setReadOnly(True)
 
         # Adding blocks to control block
         main_layout.addWidget(navbar_groupbox)
-        main_layout.addWidget(encrypt_groupbox)
-        main_layout.addWidget(decrypt_groupbox)
+        main_layout.addWidget(self.encrypt_groupbox)
+        main_layout.addWidget(self.decrypt_groupbox)
+        self.encrypt_groupbox.setVisible(True)
+        self.decrypt_groupbox.setVisible(False)
         # Widget settings
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
+
+    def switch_mode(self):
+        if self.mode == 0:
+            self.encrypt_mode_button.setEnabled(False)
+            self.decrypt_mode_button.setEnabled(True)
+            self.encrypt_groupbox.setVisible(True)
+            self.decrypt_groupbox.setVisible(False)
+            self.mode = 1
+        else:
+            self.encrypt_mode_button.setEnabled(True)
+            self.decrypt_mode_button.setEnabled(False)
+            self.encrypt_groupbox.setVisible(False)
+            self.decrypt_groupbox.setVisible(True)
+            self.mode = 0
 
     def open_key_generator(self):
         dialog = KeyGenerator(self)
@@ -295,8 +319,8 @@ class Window(QMainWindow):
                 f" background-position: center;}}")
 
     def clear_encryption_area(self):
-        self.encryption_alert_label.setText('Idling')
-        self.encryption_alert_label.setStyleSheet("color: white;")
+        self.encryption_alert_label.setText('Status : Idling')
+        self.encryption_alert_label.setStyleSheet("color: white; font-weight: bold;")
         self.text_to_hide_encrypt.clear()
         self.encryption_image = ''
         self.upload_image_button_encrypt.setStyleSheet(
@@ -304,16 +328,14 @@ class Window(QMainWindow):
         )
         self.encryption_position1_btn.setChecked(True)
         self.encryption_algorithm1_btn.setChecked(True)
-        self.encryption_pass_phrase_label.setChecked(False)
-        self.encryption_pass_phrase.clear()
         self.encryption_output_path = '--'
         self.btn_select_path.setText(self.encryption_output_path)
         self.btn_select_path.update()
-        self.encryption_output_file_name.clear()
+        self.encryption_output_file_name.setText('output')
 
     def clear_decryption_area(self):
-        self.decryption_alert_label.setText('Idling')
-        self.encryption_alert_label.setStyleSheet("color: white;")
+        self.decryption_alert_label.setText('Status : Idling')
+        self.encryption_alert_label.setStyleSheet("color: white; font-weight: bold;")
         self.hiding_text_decrypt.clear()
         self.decryption_image = ''
         self.upload_image_button_decrypt.setStyleSheet(
@@ -325,25 +347,34 @@ class Window(QMainWindow):
         self.decryption_pass_phrase.clear()
 
     def process_encrypt(self):
-        self.encryption_alert_label.setText('Processing')
+        self.encryption_alert_label.setText('Status : Processing')
         self.encryption_alert_label.setStyleSheet("color: yellow;")
+        image = self.encryption_image
         algorithm = self.encryption_algorithm_button_group.checkedButton().text()
         position = self.encryption_position_button_group.checkedButton().text()
-        output_file_name = self.encryption_output_file_name.text().split('.')[0] + '.png'
+        path = self.encryption_output_path
+        print(path)
+        output_file_name = self.encryption_output_file_name.toPlainText().split('.')[0] + '.png'
+
+        if image == '' or output_file_name == '' or path == '--':
+            self.encryption_alert_label.setText('Status : Failed')
+            self.encryption_alert_label.setStyleSheet("color: #FF4500; font-weight: bold;")
+            return
+
         encode_and_save(
-            self.encryption_image,
-            self.encryption_output_path,
+            image,
+            path,
             output_file_name,
-            self.text_to_hide_encrypt.text(),
+            self.text_to_hide_encrypt.toPlainText(),
             algorithm,
             position
         )
-        self.encryption_alert_label.setText('Done')
-        self.encryption_alert_label.setStyleSheet("color: green;")
+        self.encryption_alert_label.setText('Status : Done')
+        self.encryption_alert_label.setStyleSheet("color: #98FB98; font-weight: bold;")
 
     def process_decrypt(self):
-        self.decryption_alert_label.setText('Processing')
-        self.decryption_alert_label.setStyleSheet("color: yellow;")
+        self.decryption_alert_label.setText('Status : Processing')
+        self.decryption_alert_label.setStyleSheet("color: yellow; font-weight: bold;")
         self.hiding_text_decrypt.clear()
         algorithm = self.decryption_algorithm_button_group.checkedButton().text()
         position = self.decryption_position_button_group.checkedButton().text()
@@ -353,8 +384,8 @@ class Window(QMainWindow):
             position
         )
         print("Hiding messages:", decryption_messages)
-        self.decryption_alert_label.setText('Done')
-        self.decryption_alert_label.setStyleSheet("color: green;")
+        self.decryption_alert_label.setText('Status : Done')
+        self.decryption_alert_label.setStyleSheet("color: #98FB98; font-weight: bold;")
         self.hiding_text_decrypt.setText(decryption_messages)
         self.hiding_text_decrypt.update()
 
