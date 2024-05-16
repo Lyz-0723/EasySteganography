@@ -4,11 +4,13 @@ from PyQt5.QtWidgets import QMainWindow
 from PIL import Image
 import numpy as np
 from utils import encode_message, decode_message, image_array_reshape, text_fits_in_image
+import getpass
+from gpg import GPG
 
 from Algorithms import lsb_based
 
 basic_style = "font-weight: bold;"
-pgp_path = '--'
+gpg_path = '/Users/' + getpass.getuser() + '/.gnupg/'
 
 
 def get_bin_text(data: list[str], pixels: np.array, algorithm: str, position: str):
@@ -87,6 +89,8 @@ class Window(QMainWindow):
         # Decryption datas
         self.hiding_text = ''
         self.decryption_image = ''
+        self.encryption_key = ''
+        self.decryption_key = ''
 
         # Main control block
         main_layout = QVBoxLayout()
@@ -104,9 +108,9 @@ class Window(QMainWindow):
         self.decrypt_mode_button.setGeometry(90, 20, 90, 40)
         self.decrypt_mode_button.clicked.connect(self.switch_mode)
         self.decrypt_mode_button.setEnabled(True)
-        pgp_setting_button = QPushButton("PGP setting", navbar_groupbox)
-        pgp_setting_button.setGeometry(680, 20, 110, 40)
-        pgp_setting_button.clicked.connect(self.open_pgp_setting)
+        gpg_setting_button = QPushButton("GPG setting", navbar_groupbox)
+        gpg_setting_button.setGeometry(680, 20, 110, 40)
+        gpg_setting_button.clicked.connect(self.open_gpg_setting)
         key_generator_button = QPushButton("Key generator", navbar_groupbox)
         key_generator_button.setGeometry(785, 20, 120, 40)
         key_generator_button.clicked.connect(self.open_key_generator)
@@ -129,6 +133,9 @@ class Window(QMainWindow):
         encryption_position_label = QLabel("Encryption Position :", self.encrypt_groupbox)
         encryption_position_label.setGeometry(20, 580, 140, 30)
         # ---- Encryption position buttons
+        self.encrypt_gpg_key = QPushButton("Upload Encryption Key", self.encrypt_groupbox)
+        self.encrypt_gpg_key.setGeometry(685, 457, 304, 110)
+        self.encrypt_gpg_key.clicked.connect(self.upload_encryption_key)
         self.encryption_position_button_group = QButtonGroup(self.encrypt_groupbox)
         self.encryption_position_button_group.setExclusive(True)
         self.encryption_position1_btn = QRadioButton("Start", self.encrypt_groupbox)
@@ -179,8 +186,8 @@ class Window(QMainWindow):
         encryption_output_file_extension_label = QLabel(".png", self.encrypt_groupbox)
         encryption_output_file_extension_label.setGeometry(745, 620, 50, 30)
         # ---- Encryption PGP
-        self.encryption_pass_phrase_label = QCheckBox(" Use PGP key file", self.encrypt_groupbox)
-        self.encryption_pass_phrase_label.setGeometry(470, 580, 220, 30)
+        self.encryption_use_gpg_label = QCheckBox(" Use PGP key file", self.encrypt_groupbox)
+        self.encryption_use_gpg_label.setGeometry(470, 580, 220, 30)
         # -- Process buttons
         self.encryption_alert_label = QLabel("Status : Idling", self.encrypt_groupbox)
         self.encryption_alert_label.setStyleSheet("color: white;" + basic_style)
@@ -211,6 +218,9 @@ class Window(QMainWindow):
         encryption_position_label = QLabel("Decryption Position :", self.decrypt_groupbox)
         encryption_position_label.setGeometry(20, 580, 140, 30)
         # ---- Decryption position buttons
+        self.decrypt_gpg_key = QPushButton("Upload Decryption Key", self.decrypt_groupbox)
+        self.decrypt_gpg_key.setGeometry(685, 457, 304, 110)
+        self.decrypt_gpg_key.clicked.connect(self.upload_decryption_key)
         self.decryption_position_button_group = QButtonGroup(self.decrypt_groupbox)
         self.decryption_position_button_group.setExclusive(True)
         self.decryption_position1_btn = QRadioButton("Start", self.decrypt_groupbox)
@@ -246,10 +256,10 @@ class Window(QMainWindow):
         self.decryption_algorithm6_btn.setGeometry(350, 640, 100, 30)
         self.decryption_algorithm1_btn.setChecked(True)
         # ---- Decryption PGP
-        self.decryption_pass_phrase_label = QCheckBox(" Use PGP (Enter pass phrase) :", self.decrypt_groupbox)
-        self.decryption_pass_phrase_label.setGeometry(20, 670, 220, 30)
-        self.decryption_pass_phrase = QTextEdit(self.decrypt_groupbox)
-        self.decryption_pass_phrase.setGeometry(235, 673, 250, 26)
+        self.decryption_gpg_key_label = QCheckBox(" Use PGP (Enter pass phrase) :", self.decrypt_groupbox)
+        self.decryption_gpg_key_label.setGeometry(20, 670, 220, 30)
+        self.decryption_gpg_key_pass_phrase = QTextEdit(self.decrypt_groupbox)
+        self.decryption_gpg_key_pass_phrase.setGeometry(235, 673, 250, 26)
         # -- Process buttons
         self.decryption_alert_label = QLabel("Status : Idling", self.decrypt_groupbox)
         self.decryption_alert_label.setStyleSheet("color: white; " + basic_style)
@@ -291,8 +301,8 @@ class Window(QMainWindow):
         dialog = KeyGenerator(self)
         dialog.exec_()
 
-    def open_pgp_setting(self):
-        dialog = PGPSetting(self)
+    def open_gpg_setting(self):
+        dialog = GPGSetting(self)
         dialog.exec_()
 
     def on_checkbox_state_changed(self, state):
@@ -330,6 +340,22 @@ class Window(QMainWindow):
                 f" background-position: center;}}")
             self.upload_image_button_decrypt.setText('')
 
+    def upload_encryption_key(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Encryption Key File", "", "Image Files (*.asc)")
+        if file_path:
+            self.encryption_key = file_path
+            file_name = (file_path.split('/')[-1]).split('_')
+            self.encrypt_gpg_key.setText(file_name[0][:7] + '...' + file_name[-2] + '_' + file_name[-1])
+            self.encrypt_gpg_key.setStyleSheet('color: yellow;')
+
+    def upload_decryption_key(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Decryption Key File", "", "Image Files (*.asc)")
+        if file_path:
+            self.decryption_key = file_path
+            file_name = (file_path.split('/')[-1]).split('_')
+            self.decrypt_gpg_key.setText(file_name[0][:7] + '...' + file_name[-2] + '_' + file_name[-1])
+            self.decrypt_gpg_key.setStyleSheet('color: yellow;')
+
     def clear_encryption_area(self):
         self.encryption_alert_label.setText('Status : Idling')
         self.upload_image_button_encrypt.setText('Upload image')
@@ -345,6 +371,9 @@ class Window(QMainWindow):
         self.btn_select_path.setText(self.encryption_output_path)
         self.btn_select_path.update()
         self.encryption_output_file_name.setText('')
+        self.encryption_key = ''
+        self.encrypt_gpg_key.setText('Upload Encryption Key')
+        self.encrypt_gpg_key.setStyleSheet('color: white;')
 
     def clear_decryption_area(self):
         self.decryption_alert_label.setText('Status : Idling')
@@ -357,28 +386,48 @@ class Window(QMainWindow):
         )
         self.decryption_position1_btn.setChecked(True)
         self.decryption_algorithm1_btn.setChecked(True)
-        self.decryption_pass_phrase_label.setChecked(False)
-        self.decryption_pass_phrase.clear()
+        self.decryption_gpg_key_label.setChecked(False)
+        self.decryption_gpg_key_pass_phrase.clear()
+        self.decryption_key = ''
+        self.decrypt_gpg_key.setText('Upload Decryption Key')
+        self.decrypt_gpg_key.setStyleSheet('color: white;')
 
     def process_encrypt(self):
-        self.encryption_alert_label.setText('Status : Processing')
-        self.encryption_alert_label.setStyleSheet("color: yellow;")
+
         image = self.encryption_image
         algorithm = self.encryption_algorithm_button_group.checkedButton().text()
         position = self.encryption_position_button_group.checkedButton().text()
         path = self.encryption_output_path
         output_file_name = self.encryption_output_file_name.toPlainText().split('.')[0] + '.png'
+        text = self.text_to_hide_encrypt.toPlainText()
+        gpg = GPG(gpg_path)
+
         if output_file_name == '.png':
             output_file_name = 'output.png'
-        if image == '' or path == '':
-            self.encryption_alert_label.setText('Status : Failed')
+        if self.encryption_use_gpg_label.checkState():
+            if self.encryption_key == '':
+                self.encryption_alert_label.setText('Status : Failed, no key file selected')
+                self.encryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+                return
+            try:
+                text = gpg.encrypt_message(text, self.encryption_key)
+            except:
+                self.encryption_alert_label.setText('Status : Failed, encryption error')
+                self.encryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+                return
+        if image == '':
+            self.encryption_alert_label.setText('Status : Failed, no image selected')
+            self.encryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+            return
+        if path == '':
+            self.encryption_alert_label.setText('Status : Failed, no output path selected')
             self.encryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
             return
         encode_and_save(
             image,
             path,
             output_file_name,
-            self.text_to_hide_encrypt.toPlainText(),
+            text,
             algorithm,
             position
         )
@@ -386,16 +435,40 @@ class Window(QMainWindow):
         self.encryption_alert_label.setStyleSheet("color: #98FB98;" + basic_style)
 
     def process_decrypt(self):
-        self.decryption_alert_label.setText('Status : Processing')
-        self.decryption_alert_label.setStyleSheet("color: yellow;" + basic_style)
         self.hiding_text_decrypt.clear()
         algorithm = self.decryption_algorithm_button_group.checkedButton().text()
         position = self.decryption_position_button_group.checkedButton().text()
+        key = self.decrypt_gpg_key.text()
+        image = self.decryption_image
+        pass_phrase = ''
+        gpg = GPG(gpg_path)
+
+        if self.decryption_gpg_key_label.checkState():
+            pass_phrase = self.decryption_gpg_key_pass_phrase.toPlainText()
+            if pass_phrase == '':
+                self.decryption_alert_label.setText('Status : Failed, no pass phrase provided')
+                self.decryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+                return
+            if self.decryption_key == '':
+                self.decryption_alert_label.setText('Status : Failed, no decryption key selected')
+                self.decryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+                return
+        if image == '':
+            self.decryption_alert_label.setText('Status : Failed, no image selected')
+            self.decryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+            return
         decryption_messages = decode_image(
-            self.decryption_image,
+            image,
             algorithm,
             position
         )
+        if self.decryption_gpg_key_label.checkState():
+            try:
+                decryption_messages = gpg.decrypt_message(decryption_messages, self.decryption_key, pass_phrase)
+            except:
+                self.decryption_alert_label.setText('Status : Failed, decryption error')
+                self.decryption_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+                return
         print("Hiding messages:", decryption_messages)
         self.decryption_alert_label.setText('Status : Done')
         self.decryption_alert_label.setStyleSheet("color: #98FB98;" + basic_style)
@@ -403,27 +476,28 @@ class Window(QMainWindow):
         self.hiding_text_decrypt.update()
 
 
-class PGPSetting(QDialog):
+class GPGSetting(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("PGP setting")
+        self.setWindowTitle("GPG setting")
         self.setGeometry(0, 0, 400, 110)
         self.move(parent.geometry().x() + int(self.width() / 2), parent.geometry().y())
-        global pgp_path
+        global gpg_path
 
         # Main control block
         main_layout = QVBoxLayout()
-        groupbox = QGroupBox("PGP setting")
+        groupbox = QGroupBox("GPG setting")
 
         # Add controls to the groupbox
-        self.pgp_setting_label = QLabel("Select GnuPG path for public / private key process.", groupbox)
-        self.pgp_setting_label.setGeometry(10, 20, 350, 30)
-        self.pgp_path_label = QLabel("GnuPG path :", groupbox)
-        self.pgp_path_label.setGeometry(10, 50, 100, 30)
-        self.pgp_path = QPushButton(pgp_path, groupbox)
-        self.pgp_path.setGeometry(100, 50, 150, 30)
-        self.pgp_path.clicked.connect(self.select_path)
-        self.pgp_path.setStyleSheet("text-align: left;")
+        self.gpg_setting_label = QLabel("Change GnuPG path for public / private key process.", groupbox)
+        self.gpg_setting_label.setGeometry(10, 20, 350, 30)
+        self.gpg_path_label = QLabel("GnuPG path :", groupbox)
+        self.gpg_path_label.setGeometry(10, 50, 100, 30)
+        self.gpg_path = QTextEdit(gpg_path, groupbox)
+        self.gpg_path.setText(gpg_path)
+        self.gpg_path.setGeometry(100, 53, 150, 26)
+        self.gpg_path.textChanged.connect(self.on_path_change)
+        self.gpg_path.setStyleSheet("text-align: left;")
 
         main_layout.addWidget(groupbox)
 
@@ -432,17 +506,9 @@ class PGPSetting(QDialog):
         central_widget.setLayout(main_layout)
         self.setLayout(main_layout)
 
-    def select_path(self):
-        global pgp_path
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontResolveSymlinks
-        options |= QFileDialog.ShowDirsOnly
-
-        path = QFileDialog.getExistingDirectory(self, "Select Directory", options=options)
-        if path:
-            pgp_path = path
-            self.pgp_path.setText(pgp_path)
-            self.pgp_path.update()
+    def on_path_change(self):
+        global gpg_path
+        gpg_path = self.gpg_path.toPlainText()
 
 
 class KeyGenerator(QDialog):
@@ -472,7 +538,7 @@ class KeyGenerator(QDialog):
         self.select_output_path.setStyleSheet("text-align: left;")
         self.generate_btn = QPushButton("Generate", groupbox)
         self.generate_btn.setGeometry(240, 140, 110, 30)
-        # self.generate_btn.clicked.connect(self.)
+        self.generate_btn.clicked.connect(self.process_generate)
         self.key_generator_alert_label = QLabel("Status : Idling", groupbox)
         self.key_generator_alert_label.setStyleSheet("color: white;" + basic_style)
         self.key_generator_alert_label.setAlignment(Qt.AlignCenter)
@@ -495,3 +561,23 @@ class KeyGenerator(QDialog):
             self.path = path
             self.select_output_path.setText(self.path)
             self.select_output_path.update()
+
+    def process_generate(self):
+        pass_phrase = self.pass_phrase.toPlainText()
+        path = self.select_output_path.text()
+        if path == '--':
+            self.key_generator_alert_label.setText('Status : Error!No selected path.')
+            self.key_generator_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+            return
+        elif pass_phrase == '':
+            self.key_generator_alert_label.setText('Status : Failed, no pass phrase')
+            self.key_generator_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+            return
+        gpg = GPG(gpg_path)
+        try:
+            gpg.generate_key_pairs(path, pass_phrase)
+            self.key_generator_alert_label.setText('Status : Done')
+            self.key_generator_alert_label.setStyleSheet("color: #98FB98;" + basic_style)
+        except:
+            self.key_generator_alert_label.setText('Status : Failed')
+            self.key_generator_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
