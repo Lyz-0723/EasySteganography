@@ -116,6 +116,7 @@ class Window(QMainWindow):
         key_generator_button.clicked.connect(self.open_key_generator)
         directions_button = QPushButton("Directions", navbar_groupbox)
         directions_button.setGeometry(900, 20, 100, 40)
+        directions_button.clicked.connect(self.open_direction)
 
         ########################
         # Encryption area here #
@@ -303,6 +304,10 @@ class Window(QMainWindow):
 
     def open_gpg_setting(self):
         dialog = GPGSetting(self)
+        dialog.exec_()
+
+    def open_direction(self):
+        dialog = Direction(self)
         dialog.exec_()
 
     def on_checkbox_state_changed(self, state):
@@ -581,3 +586,99 @@ class KeyGenerator(QDialog):
         except:
             self.key_generator_alert_label.setText('Status : Failed')
             self.key_generator_alert_label.setStyleSheet("color: #FF4500;" + basic_style)
+
+
+class Direction(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Direction")
+        self.setGeometry(0, 0, 500, 670)
+        self.move(parent.geometry().x() + int(self.width() / 2), parent.geometry().y())
+
+        # Main control block
+        main_layout = QVBoxLayout()
+        operation_groupbox = QGroupBox("Operation")
+        operation_groupbox.setFixedSize(500, 530)
+
+        # Encryption directions
+        self.subtitle_encryption = QLabel("Encryption:", operation_groupbox)
+        self.subtitle_encryption.setStyleSheet("font-size: 15px; color: orange;" + basic_style)
+        self.subtitle_encryption.setGeometry(10, 20, 350, 30)
+        self.encryption_line1 = QLabel('1. Select image, position and algorithm to encrypt.', operation_groupbox)
+        self.encryption_line1.setGeometry(15, 40, 500, 30)
+        self.encryption_line2 = QLabel('2. Enter messages you want to hide.', operation_groupbox)
+        self.encryption_line2.setGeometry(15, 60, 500, 30)
+        self.encryption_line3 = QLabel('3. If you want to protect the messages with one more layer,', operation_groupbox)
+        self.encryption_line3.setGeometry(15, 80, 500, 30)
+        self.encryption_line4 = QLabel('    upload encryption key file and select "Use PGP key file".', operation_groupbox)
+        self.encryption_line4.setGeometry(15, 95, 500, 30)
+        self.encryption_line5 = QLabel('4. Select output file path and change the output file name(if you want).',
+                                       operation_groupbox)
+        self.encryption_line5.setGeometry(15, 115, 500, 30)
+        self.encryption_line6 = QLabel('5. Hit "Process" to encrypt or "Clear" to clean the data.', operation_groupbox)
+        self.encryption_line6.setGeometry(15, 135, 500, 30)
+
+        # Decryption directions
+        self.subtitle_decryption = QLabel("Decryption:", operation_groupbox)
+        self.subtitle_decryption.setStyleSheet("font-size: 15px; color: orange;" + basic_style)
+        self.subtitle_decryption.setGeometry(10, 165, 350, 30)
+        self.decryption_line1 = QLabel('1. Select image, position and algorithm to decrypt.', operation_groupbox)
+        self.decryption_line1.setGeometry(15, 185, 500, 30)
+        self.decryption_line2 = QLabel('2. If the messages has been protected, upload decryption key', operation_groupbox)
+        self.decryption_line2.setGeometry(15, 205, 500, 30)
+        self.decryption_line3 = QLabel('    file and select "Use PGP key file", then enter pass phrase.', operation_groupbox)
+        self.decryption_line3.setGeometry(15, 220, 500, 30)
+        self.decryption_line4 = QLabel('3. Hit "Process" to encrypt or "Clear" to clean the data.', operation_groupbox)
+        self.decryption_line4.setGeometry(15, 240, 500, 30)
+        self.decryption_line5 = QLabel('4. You will see the original messages in the text box.', operation_groupbox)
+        self.decryption_line5.setGeometry(15, 260, 500, 30)
+        self.decryption_line6 = QLabel('-- You can also view the encrypted messages by not selecting', operation_groupbox)
+        self.decryption_line6.setGeometry(20, 280, 500, 30)
+        self.decryption_line7 = QLabel('   "Use PGP key file".', operation_groupbox)
+        self.decryption_line7.setGeometry(20, 300, 500, 30)
+
+        # Key generation
+        self.subtitle_key_generate = QLabel("Key Generation:", operation_groupbox)
+        self.subtitle_key_generate.setStyleSheet("font-size: 15px; color: orange;" + basic_style)
+        self.subtitle_key_generate.setGeometry(10, 330, 350, 30)
+        self.key_generate_line1 = QLabel("This tool has provided a way to generate public / private key pair - ",
+                                         operation_groupbox)
+        self.key_generate_line1.setGeometry(15, 350, 500, 30)
+        self.key_generate_line2 = QLabel("1. Make sure you have installed GnuPG in your computer.", operation_groupbox)
+        self.key_generate_line2.setGeometry(15, 370, 500, 30)
+        self.key_generate_line3 = QLabel('2. Check the GnuPG path in "GPG Setting".', operation_groupbox)
+        self.key_generate_line3.setGeometry(15, 390, 500, 30)
+        self.key_generate_line4 = QLabel('3. Open "Key generator" and select key output file path.', operation_groupbox)
+        self.key_generate_line4.setGeometry(15, 410, 500, 30)
+        self.key_generate_line5 = QLabel('4. Enter pass phrase.', operation_groupbox)
+        self.key_generate_line5.setGeometry(15, 430, 500, 30)
+        self.key_generate_line6 = QLabel('5. Hit "Process" to generate key pair.', operation_groupbox)
+        self.key_generate_line6.setGeometry(15, 450, 500, 30)
+        self.key_generate_line7 = QLabel('6. If the generation succeed, you should see a folder in the path you',
+                                         operation_groupbox)
+        self.key_generate_line7.setGeometry(15, 470, 500, 30)
+        self.key_generate_line8 = QLabel('   select, inside are public / private key file and '
+                                         'rev file for storing them.',
+                                         operation_groupbox)
+        self.key_generate_line8.setGeometry(15, 490, 500, 30)
+
+        license_groupbox = QGroupBox("License")
+        self.license_line1 = QLabel("Free to use for all kind of work, but please link the source if you are using it",
+                                    license_groupbox)
+        self.license_line1.setGeometry(10, 20, 500, 30)
+        self.license_line2 = QLabel("as your code's base.", license_groupbox)
+        self.license_line2.setGeometry(10, 35, 500, 30)
+        self.license_line3 = QLabel("Contributed by: Danny Ho, Sally Lin.", license_groupbox)
+        self.license_line3.setGeometry(10, 55, 500, 30)
+        self.license_line4 = QLabel("GitHub source page: <a href='https://github.com/Lyz-0723/EasySteganography'>"
+                                    "here</a>", license_groupbox)
+        self.license_line4.setTextFormat(Qt.RichText)
+        self.license_line4.setOpenExternalLinks(True)
+        self.license_line4.setGeometry(10, 75, 500, 30)
+
+        main_layout.addWidget(operation_groupbox)
+        main_layout.addWidget(license_groupbox)
+        # Widget settings
+        central_widget = QWidget()
+        central_widget.setLayout(main_layout)
+        self.setLayout(main_layout)
