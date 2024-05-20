@@ -43,7 +43,7 @@ def encode_image(image: Image, message: str, algorithm: str, position: str):
                 start = i * 3
                 lsb_based.modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
         case "PVD steg":
-            pvd_based.modify_pixel(pixels, ''.join(bin_text_list))
+            pvd_based.modify_pixel(pixels[:], ''.join(bin_text_list))
         case _:
             for i in range(len(bin_text_list)):
                 last = i == (len(bin_text_list) - 1)
@@ -80,9 +80,8 @@ def decode_image(img_path: str, algorithm: str, position: str):
 
             return decode_message(data)
         case "PVD steg":
-            image, _ = image_array_reshape(image)
 
-            return decode_message(pvd_based.get_hidden_messages(image))
+            return pvd_based.get_hidden_messages(pixels)
         case _:
             data = []
             i = 0
