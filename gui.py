@@ -7,7 +7,7 @@ from utils import encode_message, decode_message, image_array_reshape, text_fits
 import getpass
 from gpg import GPG
 
-from Algorithms import lsb_based
+from Algorithms import lsb_based, pvd_based
 
 basic_style = "font-weight: bold;"
 gpg_path = '/Users/' + getpass.getuser() + '/.gnupg/'
@@ -29,20 +29,25 @@ def get_bin_text(data: list[str], pixels: np.array, algorithm: str, position: st
 
 def encode_image(image: Image, message: str, algorithm: str, position: str):
     bin_text_list = encode_message(message)
+    # print(bin_text_list)
     pixels, shape = image_array_reshape(image)
 
     if not text_fits_in_image(pixels, message):
         print('Message is too long')
         return
 
-    for i in range(len(bin_text_list)):
-        last = i == (len(bin_text_list) - 1)
-
-        start = i * 3
-        match algorithm:
-            case "LSB steg":
+    match algorithm:
+        case "LSB steg":
+            for i in range(len(bin_text_list)):
+                last = i == (len(bin_text_list) - 1)
+                start = i * 3
                 lsb_based.modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
-            case _:
+        case "PVD steg":
+            pvd_based.modify_pixel(pixels, ''.join(bin_text_list))
+        case _:
+            for i in range(len(bin_text_list)):
+                last = i == (len(bin_text_list) - 1)
+                start = i * 3
                 lsb_based.modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
 
     return Image.fromarray(pixels.reshape(shape))
@@ -61,17 +66,35 @@ def decode_image(img_path: str, algorithm: str, position: str):
 
     pixels, _ = image_array_reshape(image)
 
-    data = []
-    i = 0
-    while True:
-        start = i * 3
+    match algorithm:
+        case "LSB steg":
+            data = []
+            i = 0
+            while True:
+                start = i * 3
 
-        if get_bin_text(data, pixels[start: start + 3], algorithm, position):
-            break
+                if get_bin_text(data, pixels[start: start + 3], algorithm, position):
+                    break
 
-        i += 1
+                i += 1
 
-    return decode_message(data)
+            return decode_message(data)
+        case "PVD steg":
+            image, _ = image_array_reshape(image)
+
+            return decode_message(pvd_based.get_hidden_messages(image))
+        case _:
+            data = []
+            i = 0
+            while True:
+                start = i * 3
+
+                if get_bin_text(data, pixels[start: start + 3], algorithm, position):
+                    break
+
+                i += 1
+
+            return decode_message(data)
 
 
 class Window(QMainWindow):
@@ -153,7 +176,7 @@ class Window(QMainWindow):
         self.encryption_algorithm_button_group = QButtonGroup(self.encrypt_groupbox)
         self.encryption_algorithm_button_group.setExclusive(True)
         self.encryption_algorithm1_btn = QRadioButton("LSB steg", self.encrypt_groupbox)
-        self.encryption_algorithm2_btn = QRadioButton("--", self.encrypt_groupbox)
+        self.encryption_algorithm2_btn = QRadioButton("PVD steg", self.encrypt_groupbox)
         self.encryption_algorithm3_btn = QRadioButton("--", self.encrypt_groupbox)
         self.encryption_algorithm4_btn = QRadioButton("--", self.encrypt_groupbox)
         self.encryption_algorithm5_btn = QRadioButton("--", self.encrypt_groupbox)
@@ -238,7 +261,7 @@ class Window(QMainWindow):
         self.decryption_algorithm_button_group = QButtonGroup(self.decrypt_groupbox)
         self.decryption_algorithm_button_group.setExclusive(True)
         self.decryption_algorithm1_btn = QRadioButton("LSB steg", self.decrypt_groupbox)
-        self.decryption_algorithm2_btn = QRadioButton("--", self.decrypt_groupbox)
+        self.decryption_algorithm2_btn = QRadioButton("PVD steg", self.decrypt_groupbox)
         self.decryption_algorithm3_btn = QRadioButton("--", self.decrypt_groupbox)
         self.decryption_algorithm4_btn = QRadioButton("--", self.decrypt_groupbox)
         self.decryption_algorithm5_btn = QRadioButton("--", self.decrypt_groupbox)
