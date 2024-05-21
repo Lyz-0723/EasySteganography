@@ -354,7 +354,7 @@ class Window(QMainWindow):
         if file_path:
             self.encryption_image = file_path
             self.upload_image_button_encrypt.setStyleSheet(
-                f"QPushButton {{ border-image: url('{file_path}'); border-image-outset: 30%;"
+                f"QPushButton {{ border-image: url('{file_path}');"
                 f" background-position: center;}}")
             self.upload_image_button_encrypt.setText("")
 
@@ -363,7 +363,7 @@ class Window(QMainWindow):
         if file_path:
             self.decryption_image = file_path
             self.upload_image_button_decrypt.setStyleSheet(
-                f"QPushButton {{ border-image: url('{file_path}'); border-image-outset: 30%;"
+                f"QPushButton {{ border-image: url('{file_path}');"
                 f" background-position: center;}}")
             self.upload_image_button_decrypt.setText('')
 
