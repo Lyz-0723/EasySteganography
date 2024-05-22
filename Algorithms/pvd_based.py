@@ -65,7 +65,7 @@ def get_hidden_messages(pixels: np.array):
     while pixels[pos][2] % 2 == 0:
 
         # Calculate difference of tunnel 0 and 1
-        diff = abs(pixels[pos][0] - pixels[pos][1])
+        diff = abs(int(pixels[pos][0]) - int(pixels[pos][1]))
 
         # Calculate the bits hiding in current pixel
         bits = 0 if diff == 0 else math.floor(math.log2(diff))
