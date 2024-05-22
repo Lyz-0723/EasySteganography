@@ -80,7 +80,7 @@ def decode_image(img_path: str, algorithm: str, position: str):
                 i += 1
             return decode_message(data)
         case "PVD steg":
-            return pvd_based.get_hidden_messages(pixels)
+            return decode_message(pvd_based.get_hidden_messages(pixels))
         case _:
             data = []
             i = 0
