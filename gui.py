@@ -1,35 +1,21 @@
+import getpass
+
+from PIL import Image
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QMainWindow
-from PIL import Image
-import numpy as np
-from utils import encode_message, decode_message, image_array_reshape, text_fits_in_image
-import getpass
-from gpg import GPG
 
 from Algorithms import lsb_based, pvd_based
+from gpg import GPG
+from utils import encode_message, decode_message, image_array_reshape, text_fits_in_image
 
 basic_style = "font-weight: bold;"
 gpg_path = '/Users/' + getpass.getuser() + '/.gnupg/'
 
 
-def get_bin_text(data: list[str], pixels: np.array, algorithm: str, position: str):
-    pixels = pixels.reshape(9, )
-    bin_text = ''
-    for i in range(8):
-        match algorithm:
-            case "LSB steg":
-                bin_text += lsb_based.get_bin_value(pixels[i])
-            case _:
-                bin_text += lsb_based.get_bin_value(pixels[i])
-
-    data.append(bin_text)
-    return pixels[-1] % 2 == 1
-
-
 def encode_image(image: Image, message: str, algorithm: str, position: str):
     # Encode the image with corresponding algorithm
-    bin_text_list = encode_message(message)
+    bin_message = encode_message(message)
     pixels, shape = image_array_reshape(image)
 
     if not text_fits_in_image(pixels, message):
@@ -39,19 +25,13 @@ def encode_image(image: Image, message: str, algorithm: str, position: str):
     match algorithm:
         case "LSB steg":
             # LSB steg Send each three pixels for encoding data
-            for i in range(len(bin_text_list)):
-                last = i == (len(bin_text_list) - 1)
-                start = i * 3
-                lsb_based.modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
+            lsb_based.modify_pixel(pixels, bin_message)
         case "PVD steg":
             # PVD steg send the whole image for encoding data
-            pvd_based.modify_pixel(pixels[:], ''.join(bin_text_list))
+            pvd_based.modify_pixel(pixels[:], "".join(bin_message))
         case _:
             # Default algorithm set to LSB steg
-            for i in range(len(bin_text_list)):
-                last = i == (len(bin_text_list) - 1)
-                start = i * 3
-                lsb_based.modify_pixel(pixels[start: start + 3], bin_text_list[i], last)
+            lsb_based.modify_pixel(pixels, bin_message)
 
     return Image.fromarray(pixels.reshape(shape))
 
@@ -65,31 +45,17 @@ def encode_and_save(img_path: str, save_directory: str, save_name: str, message:
 
 
 def decode_image(img_path: str, algorithm: str, position: str):
-    # Decode the image no matter it is encrypted message or not
+    # Decode the image no matter it is encrypted bin_message or not
     image = Image.open(img_path, 'r')
     pixels, _ = image_array_reshape(image)
 
     match algorithm:
         case "LSB steg":
-            data = []
-            i = 0
-            while True:
-                start = i * 3
-                if get_bin_text(data, pixels[start: start + 3], algorithm, position):
-                    break
-                i += 1
-            return decode_message(data)
+            return decode_message(lsb_based.get_hidden_messages(pixels, position))
         case "PVD steg":
             return decode_message(pvd_based.get_hidden_messages(pixels))
         case _:
-            data = []
-            i = 0
-            while True:
-                start = i * 3
-                if get_bin_text(data, pixels[start: start + 3], algorithm, position):
-                    break
-                i += 1
-            return decode_message(data)
+            return decode_message(lsb_based.get_hidden_messages(pixels, position))
 
 
 class Window(QMainWindow):
@@ -662,7 +628,8 @@ class Direction(QDialog):
         self.decode_line1.setGeometry(15, 185, 500, 30)
         self.decode_line2 = QLabel('2. If the messages has been protected, upload decode key.', operation_groupbox)
         self.decode_line2.setGeometry(15, 205, 500, 30)
-        self.decode_line3 = QLabel('    file and select "Use PGP key file", then enter pass phrase.', operation_groupbox)
+        self.decode_line3 = QLabel('    file and select "Use PGP key file", then enter pass phrase.',
+                                   operation_groupbox)
         self.decode_line3.setGeometry(15, 220, 500, 30)
         self.decode_line4 = QLabel('3. Hit "Process" to decode or "Clear" to clean the data.', operation_groupbox)
         self.decode_line4.setGeometry(15, 240, 500, 30)
