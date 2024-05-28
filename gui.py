@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QMainWindow
 
-from Algorithms import lsb_based, pvd_based
+from Algorithms import lsb_based, pvd_based, fourier_based
 from gpg import GPG
 from utils import encode_message, decode_message, image_array_reshape, text_fits_in_image
 
@@ -29,6 +29,9 @@ def encode_image(image: Image, message: str, algorithm: str, position: str):
         case "PVD steg":
             # PVD steg send the whole image for encoding data
             pvd_based.modify_pixel(pixels[:], "".join(bin_message))
+        case "Fourier steg":
+            # Fourier steg send the whole image for encoding data
+            fourier_based.modify_pixel(pixels[:], "".join(bin_message))
         case _:
             # Default algorithm set to LSB steg
             lsb_based.modify_pixel(pixels, bin_message)
@@ -54,6 +57,8 @@ def decode_image(img_path: str, algorithm: str, position: str):
             return decode_message(lsb_based.get_hidden_messages(pixels, position))
         case "PVD steg":
             return decode_message(pvd_based.get_hidden_messages(pixels))
+        case "Fourier steg":
+            return decode_message(fourier_based.get_hidden_messages(pixels))
         case _:
             return decode_message(lsb_based.get_hidden_messages(pixels, position))
 
@@ -140,22 +145,13 @@ class Window(QMainWindow):
         self.encode_algorithm_btn_group.setExclusive(True)
         self.encode_algorithm1_btn = QRadioButton("LSB steg", self.encode_groupbox)
         self.encode_algorithm2_btn = QRadioButton("PVD steg", self.encode_groupbox)
-        self.encode_algorithm3_btn = QRadioButton("--", self.encode_groupbox)
-        self.encode_algorithm4_btn = QRadioButton("--", self.encode_groupbox)
-        self.encode_algorithm5_btn = QRadioButton("--", self.encode_groupbox)
-        self.encode_algorithm6_btn = QRadioButton("--", self.encode_groupbox)
+        self.encode_algorithm3_btn = QRadioButton("Fourier steg", self.encode_groupbox)
         self.encode_algorithm_btn_group.addButton(self.encode_algorithm1_btn)
         self.encode_algorithm_btn_group.addButton(self.encode_algorithm2_btn)
         self.encode_algorithm_btn_group.addButton(self.encode_algorithm3_btn)
-        self.encode_algorithm_btn_group.addButton(self.encode_algorithm4_btn)
-        self.encode_algorithm_btn_group.addButton(self.encode_algorithm5_btn)
-        self.encode_algorithm_btn_group.addButton(self.encode_algorithm6_btn)
         self.encode_algorithm1_btn.setGeometry(150, 620, 100, 30)
         self.encode_algorithm2_btn.setGeometry(250, 620, 100, 30)
         self.encode_algorithm3_btn.setGeometry(350, 620, 100, 30)
-        self.encode_algorithm4_btn.setGeometry(150, 640, 100, 30)
-        self.encode_algorithm5_btn.setGeometry(250, 640, 100, 30)
-        self.encode_algorithm6_btn.setGeometry(350, 640, 100, 30)
         self.encode_algorithm1_btn.setChecked(True)
 
         # -- Encode output file directory
@@ -229,22 +225,13 @@ class Window(QMainWindow):
         self.decode_algorithm_btn_group.setExclusive(True)
         self.decode_algorithm1_btn = QRadioButton("LSB steg", self.decode_groupbox)
         self.decode_algorithm2_btn = QRadioButton("PVD steg", self.decode_groupbox)
-        self.decode_algorithm3_btn = QRadioButton("--", self.decode_groupbox)
-        self.decode_algorithm4_btn = QRadioButton("--", self.decode_groupbox)
-        self.decode_algorithm5_btn = QRadioButton("--", self.decode_groupbox)
-        self.decode_algorithm6_btn = QRadioButton("--", self.decode_groupbox)
+        self.decode_algorithm3_btn = QRadioButton("Fourier steg", self.decode_groupbox)
         self.decode_algorithm_btn_group.addButton(self.decode_algorithm1_btn)
         self.decode_algorithm_btn_group.addButton(self.decode_algorithm2_btn)
         self.decode_algorithm_btn_group.addButton(self.decode_algorithm3_btn)
-        self.decode_algorithm_btn_group.addButton(self.decode_algorithm4_btn)
-        self.decode_algorithm_btn_group.addButton(self.decode_algorithm5_btn)
-        self.decode_algorithm_btn_group.addButton(self.decode_algorithm6_btn)
         self.decode_algorithm1_btn.setGeometry(150, 620, 100, 30)
         self.decode_algorithm2_btn.setGeometry(250, 620, 100, 30)
         self.decode_algorithm3_btn.setGeometry(350, 620, 100, 30)
-        self.decode_algorithm4_btn.setGeometry(150, 640, 100, 30)
-        self.decode_algorithm5_btn.setGeometry(250, 640, 100, 30)
-        self.decode_algorithm6_btn.setGeometry(350, 640, 100, 30)
         self.decode_algorithm1_btn.setChecked(True)
 
         # -- Decode PGP

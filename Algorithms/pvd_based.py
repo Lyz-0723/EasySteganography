@@ -22,10 +22,10 @@ def set_value(pixels: np.array, pos: int, m: int):
             pixels[pos][1] += math.ceil(m / 2)
 
 
-def modify_pixel(pixels: np.array, messages: str):
+def modify_pixel(pixels: np.array, bin_messages: str):
     # Encode datas into image
     pos = 0
-    while len(messages) > 0:
+    while len(bin_messages) > 0:
         # Calculate the original difference about tunnel 0 and 1 in single pixel
         diff = abs(int(pixels[pos][0]) - int(pixels[pos][1]))
 
@@ -35,13 +35,13 @@ def modify_pixel(pixels: np.array, messages: str):
         # If bits can be used in the pixel >0
         if bits > 0:
             # Check if the bits that can be used is more than the rest bits of message
-            if bits <= len(messages):
-                value = messages[:bits]
-                messages = messages[bits:]
+            if bits <= len(bin_messages):
+                value = bin_messages[:bits]
+                bin_messages = bin_messages[bits:]
             else:
-                bits = len(messages)
-                value = messages
-                messages = ''
+                bits = len(bin_messages)
+                value = bin_messages
+                bin_messages = ''
 
             # Calculate the new tunnel value difference
             new_diff = 2 ** bits + int(value, 2)
