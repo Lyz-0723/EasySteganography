@@ -53,7 +53,6 @@ class GPG:
         cipher_text = self._gpg.encrypt(data, fp)
 
         self.delete_keys(fp)
-        print(cipher_text)
         return str(cipher_text)
 
     def decrypt_message(self, data: str, key_path: str, passphrase: str) -> str:
