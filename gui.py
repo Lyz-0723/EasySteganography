@@ -163,21 +163,21 @@ class Window(QMainWindow):
         self.encode_output_file_path_btn.setStyleSheet("text-align: left;")
         # -- Encode output file name
         encode_output_file_name_label = QLabel(" Output file name :", self.encode_groupbox)
-        encode_output_file_name_label.setGeometry(470, 620, 115, 30)
+        encode_output_file_name_label.setGeometry(500, 620, 115, 30)
         self.encode_output_file_name = QTextEdit(self.encode_groupbox)
-        self.encode_output_file_name.setGeometry(590, 623, 150, 26)
+        self.encode_output_file_name.setGeometry(620, 623, 150, 26)
         self.encode_output_file_name.setPlaceholderText("output")
         encode_output_file_extension_label = QLabel(".png", self.encode_groupbox)
-        encode_output_file_extension_label.setGeometry(745, 620, 50, 30)
+        encode_output_file_extension_label.setGeometry(775, 620, 50, 30)
 
         # -- Encode PGP
         self.encode_use_gpg_label = QCheckBox(" Use PGP key file", self.encode_groupbox)
-        self.encode_use_gpg_label.setGeometry(470, 580, 220, 30)
+        self.encode_use_gpg_label.setGeometry(500, 580, 220, 30)
         # -- Encode process buttons
         self.encode_alert_label = QLabel("Status : Idling", self.encode_groupbox)
         self.encode_alert_label.setStyleSheet("color: white;" + basic_style)
         self.encode_alert_label.setAlignment(Qt.AlignCenter)
-        self.encode_alert_label.setGeometry(470, 670, 400, 30)
+        self.encode_alert_label.setGeometry(500, 670, 400, 30)
         self.encode_process_image_btn = QPushButton("Process", self.encode_groupbox)
         self.encode_process_image_btn.setGeometry(850, 640, 120, 30)
         self.encode_process_image_btn.clicked.connect(self.process_encode)
