@@ -19,15 +19,15 @@ def get_bin_value(value: int):
 
 
 def get_hidden_messages(pixels: np.array, position: str):
-    secret_message = ''
+    secret = ''
     pos = 0
     while True:
         flat_pixel = pixels[pos * 3: pos * 3 + 3].reshape(9, )
 
-        secret_message += ''.join(get_bin_value(x) for x in flat_pixel[:8])
+        secret += ''.join(get_bin_value(x) for x in flat_pixel[:8])
 
         if flat_pixel[-1] % 2 == 1:
             break
         pos += 1
 
-    return [secret_message[i:i + 8] for i in range(0, len(secret_message), 8)]
+    return [secret[i:i + 8] for i in range(0, len(secret), 8)]

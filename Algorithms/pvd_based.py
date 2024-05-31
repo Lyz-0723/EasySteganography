@@ -59,7 +59,7 @@ def modify_pixel(pixels: np.array, bin_messages: str):
 
 
 def get_hidden_messages(pixels: np.array):
-    secret_message = ''
+    secret = ''
     pos = 0
     # While pixel with message bits hiding not reaching the end
     while pixels[pos][2] % 2 == 0:
@@ -74,9 +74,9 @@ def get_hidden_messages(pixels: np.array):
         if bits > 0:
             diff -= (2 ** bits)
             str_part = format(diff, '0' + str(bits) + 'b')
-            secret_message += str_part
+            secret += str_part
 
         pos += 1
 
     # Decode the message with ascii text
-    return [secret_message[i:i + 8] for i in range(0, len(secret_message), 8)]
+    return [secret[i:i + 8] for i in range(0, len(secret), 8)]
