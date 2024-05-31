@@ -6,22 +6,21 @@ from utils import is_end
 
 
 def set_value(pixels: np.array, pos: int, m: int):
+    x = math.ceil(m / 2)
+    y = math.floor(m / 2)
+
+    def adjust_values(cond, idx1, idx2):
+        nonlocal x, y
+        while cond(pixels[pos][idx1] + x, pixels[pos][idx2] - y):
+            x, y = (x - 1, y + 1) if pixels[pos][idx1] + x > 255 else (x + 1, y - 1)
+
+        pixels[pos][idx1] += x
+        pixels[pos][idx2] -= y
+
     if pixels[pos][0] > pixels[pos][1]:
-        if pixels[pos][0] + math.ceil(m / 2) > 255:
-            pixels[pos][1] -= m
-        elif pixels[pos][1] - math.floor(m / 2) < 0:
-            pixels[pos][0] += m
-        else:
-            pixels[pos][0] += math.ceil(m / 2)
-            pixels[pos][1] -= math.floor(m / 2)
+        adjust_values(lambda a, b: a > 255 or b < 0, 0, 1)
     else:
-        if pixels[pos][0] - math.floor(m / 2) < 0:
-            pixels[pos][1] += m
-        elif pixels[pos][1] + math.ceil(m / 2) > 255:
-            pixels[pos][0] -= m
-        else:
-            pixels[pos][0] -= math.floor(m / 2)
-            pixels[pos][1] += math.ceil(m / 2)
+        adjust_values(lambda a, b: a > 255 or b < 0, 1, 0)
 
 
 def modify_pixel(pixels: np.array, bin_message: str, position: str):
