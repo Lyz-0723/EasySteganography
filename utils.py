@@ -21,3 +21,8 @@ def image_array_reshape(image: Image) -> tuple[np.array, type(tuple)]:
 
 def text_fits_in_image(pixels: np.array, text: str) -> bool:
     return len(text) <= len(pixels) // 3
+
+
+def is_end(pixels: np.array, position: str):
+    if position == 'End':
+        pixels[:] = pixels[::-1]

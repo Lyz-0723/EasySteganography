@@ -1,7 +1,11 @@
 import numpy as np
 
+from utils import is_end
 
-def modify_pixel(pixels: np.array, bin_message: str):
+
+def modify_pixel(pixels: np.array, bin_message: str, position: str):
+    is_end(pixels, position)
+
     pos = 0
     tun = 0
 
@@ -21,8 +25,12 @@ def modify_pixel(pixels: np.array, bin_message: str):
         tun += pos // 3
         pos = pos % 3
 
+    is_end(pixels, position)
 
-def get_hidden_messages(pixels: np.array):
+
+def get_hidden_messages(pixels: np.array, position: str):
+    is_end(pixels, position)
+
     secret = ''
     zero_count = 0
 

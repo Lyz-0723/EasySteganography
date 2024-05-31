@@ -1,8 +1,12 @@
 import numpy as np
 
+from utils import is_end
 
-def modify_pixel(pixels: np.array, bin_message: list[str]):
-    for i in range(len(bin_message)):
+
+def modify_pixel(pixels: np.array, bin_message: list[str], position: str):
+    is_end(pixels, position)
+
+    for i in range(0, len(bin_message)):
         pixel_slice = pixels[i * 3: i * 3 + 3]
 
         for j in range(len(bin_message[i])):
@@ -13,12 +17,16 @@ def modify_pixel(pixels: np.array, bin_message: list[str]):
 
         pixel_slice[-1][-1] = (pixel_slice[-1][-1] & 254) | (1 if i == (len(bin_message) - 1) else 0)
 
+    is_end(pixels, position)
+
 
 def get_bin_value(value: int):
     return str(value & 1)
 
 
 def get_hidden_messages(pixels: np.array, position: str):
+    is_end(pixels, position)
+
     secret = ''
     pos = 0
     while True:

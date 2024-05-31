@@ -2,6 +2,8 @@ import math
 
 import numpy as np
 
+from utils import is_end
+
 
 def set_value(pixels: np.array, pos: int, m: int):
     if pixels[pos][0] > pixels[pos][1]:
@@ -22,10 +24,12 @@ def set_value(pixels: np.array, pos: int, m: int):
             pixels[pos][1] += math.ceil(m / 2)
 
 
-def modify_pixel(pixels: np.array, bin_messages: str):
+def modify_pixel(pixels: np.array, bin_message: str, position: str):
+    is_end(pixels, position)
+
     # Encode datas into image
     pos = 0
-    while len(bin_messages) > 0:
+    while len(bin_message) > 0:
         # Calculate the original difference about tunnel 0 and 1 in single pixel
         diff = abs(int(pixels[pos][0]) - int(pixels[pos][1]))
 
@@ -35,13 +39,13 @@ def modify_pixel(pixels: np.array, bin_messages: str):
         # If bits can be used in the pixel >0
         if bits > 0:
             # Check if the bits that can be used is more than the rest bits of message
-            if bits <= len(bin_messages):
-                value = bin_messages[:bits]
-                bin_messages = bin_messages[bits:]
+            if bits <= len(bin_message):
+                value = bin_message[:bits]
+                bin_message = bin_message[bits:]
             else:
-                bits = len(bin_messages)
-                value = bin_messages
-                bin_messages = ''
+                bits = len(bin_message)
+                value = bin_message
+                bin_message = ''
 
             # Calculate the new tunnel value difference
             new_diff = 2 ** bits + int(value, 2)
@@ -57,8 +61,12 @@ def modify_pixel(pixels: np.array, bin_messages: str):
     # Set one more bit's third tunnel to odd number for "end of message"
     pixels[pos][2] = (pixels[pos][2] & 254) | 1
 
+    is_end(pixels, position)
 
-def get_hidden_messages(pixels: np.array):
+
+def get_hidden_messages(pixels: np.array, position: str):
+    is_end(pixels, position)
+
     secret = ''
     pos = 0
     # While pixel with message bits hiding not reaching the end

@@ -25,16 +25,16 @@ def encode_image(image: Image, message: str, algorithm: str, position: str):
     match algorithm:
         case "LSB steg":
             # LSB steg Send each three pixels for encoding data
-            lsb_based.modify_pixel(pixels, bin_message)
+            lsb_based.modify_pixel(pixels, bin_message, position)
         case "PVD steg":
             # PVD steg send the whole image for encoding data
-            pvd_based.modify_pixel(pixels[:], "".join(bin_message))
+            pvd_based.modify_pixel(pixels, "".join(bin_message), position)
         case "Sequence steg":
             # Fourier steg send the whole image for encoding data
-            sequence_based.modify_pixel(pixels[:], "".join(bin_message))
+            sequence_based.modify_pixel(pixels, "".join(bin_message), position)
         case _:
             # Default algorithm set to LSB steg
-            lsb_based.modify_pixel(pixels, bin_message)
+            lsb_based.modify_pixel(pixels, bin_message, position)
 
     return Image.fromarray(pixels.reshape(shape))
 
@@ -56,9 +56,9 @@ def decode_image(img_path: str, algorithm: str, position: str):
         case "LSB steg":
             return decode_message(lsb_based.get_hidden_messages(pixels, position))
         case "PVD steg":
-            return decode_message(pvd_based.get_hidden_messages(pixels))
+            return decode_message(pvd_based.get_hidden_messages(pixels, position))
         case "Sequence steg":
-            return decode_message(sequence_based.get_hidden_messages(pixels))
+            return decode_message(sequence_based.get_hidden_messages(pixels, position))
         case _:
             return decode_message(lsb_based.get_hidden_messages(pixels, position))
 
