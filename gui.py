@@ -123,7 +123,7 @@ class Window(QMainWindow):
         encode_position_label = QLabel("Encryption Position :", self.encode_groupbox)
         encode_position_label.setGeometry(20, 580, 140, 30)
         # ---- Encode position buttons
-        self.encode_upload_pgp_key_btn = QPushButton("Upload encode Key", self.encode_groupbox)
+        self.encode_upload_pgp_key_btn = QPushButton("Upload Encryption Key", self.encode_groupbox)
         self.encode_upload_pgp_key_btn.setGeometry(685, 457, 304, 110)
         self.encode_upload_pgp_key_btn.clicked.connect(self.encode_upload_pgp_key)
 
